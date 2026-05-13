@@ -1,0 +1,113 @@
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: signal_postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: signal_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Ollama is intentionally NOT a Docker service.
+  # Docker Desktop on macOS cannot pass through the Apple Silicon GPU, so
+  # containerized Ollama is forced to CPU-only inference (~15-20x slower than
+  # native Metal). Rule-3 amendment 2026-05-13.
+  #
+  # In a separate terminal: ollama serve
+  # Verify reachable:       curl http://localhost:11434/api/tags
+  # (llama3:latest was pulled natively in Phase 1 Task 6.)
+  # ──────────────────────────────────────────────────────────────────────────
+
+  airflow:
+    image: apache/airflow:2.8.0-python3.11
+    container_name: signal_airflow
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      PYTHONPATH: /opt/airflow/ingestion
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./ingestion:/opt/airflow/ingestion
+      - ./.env:/opt/airflow/.env
+      - airflow_logs:/opt/airflow/logs
+    ports:
+      - "8080:8080"
+    command: bash -c "airflow db init && (airflow users create --username admin --password admin --firstname Signal --lastname Admin --role Admin --email admin@signal.dev || true) && airflow webserver"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  airflow-scheduler:
+    image: apache/airflow:2.8.0-python3.11
+    container_name: signal_airflow_scheduler
+    depends_on:
+      airflow:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      PYTHONPATH: /opt/airflow/ingestion
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./ingestion:/opt/airflow/ingestion
+      - ./.env:/opt/airflow/.env
+      - airflow_logs:/opt/airflow/logs
+    command: airflow scheduler
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Backend (FastAPI) service is intentionally commented out for Phase 5.
+  # backend/Dockerfile, backend/requirements.txt, and backend/main.py do not
+  # exist yet. Uncomment in Phase 9 Task 1 after those three files are
+  # populated. Rule-3 amendment 2026-05-13.
+  # ──────────────────────────────────────────────────────────────────────────
+  # backend:
+  #   build: ./backend
+  #   container_name: signal_backend
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   environment:
+  #     - DB_HOST=postgres
+  #     - DB_PORT=5432
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./backend:/app
+  #   command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:
+  airflow_logs:
