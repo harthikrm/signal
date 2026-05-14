@@ -196,7 +196,21 @@ def upsert_financials(records: list):
 
 
 def upsert_prices(records: list):
-    """Upsert daily price records."""
+    """
+    Upsert daily price records.
+
+    Contract (Rule-3 amendment 2026-05-13):
+      Each record dict MUST contain at minimum:
+        - ticker (str)
+        - date   (Python date object OR ISO yyyy-mm-dd string)
+        - c      (close price, numeric, NOT NULL in DB)
+      Optional fields (default to NULL if absent):
+        - o, h, l, v, vw, n  (open, high, low, volume, vwap, transactions)
+      The function MUST NEVER reference a "t" key. Raw Polygon bars from
+      polygon_client.get_daily_ohlcv() use t (epoch-ms timestamp) instead
+      of date; the Airflow DAG layer is responsible for normalizing
+      t -> date before invoking this loader.
+    """
     conn = get_connection()
     cur  = conn.cursor()
     psycopg2.extras.execute_values(cur, """

@@ -40,7 +40,9 @@ services:
   # ──────────────────────────────────────────────────────────────────────────
 
   airflow:
-    image: apache/airflow:2.8.0-python3.11
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
     container_name: signal_airflow
     depends_on:
       postgres:
@@ -69,7 +71,9 @@ services:
       retries: 5
 
   airflow-scheduler:
-    image: apache/airflow:2.8.0-python3.11
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
     container_name: signal_airflow_scheduler
     depends_on:
       airflow:
