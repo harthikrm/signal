@@ -9,22 +9,25 @@ class HealthResponse(BaseModel):
 
 
 class ChatQueryRequest(BaseModel):
-    question: str = Field(..., max_length=2000)
+    question: str
+    history: list[dict[str, Any]] = Field(default_factory=list)
+    session_id: Optional[str] = Field(default=None, max_length=64)
 
     @field_validator("question")
     @classmethod
-    def strip_q(cls, v: str) -> str:
-        v = v.strip()
+    def validate_question(cls, v: str) -> str:
+        v = (v or "").strip()
         if not v:
             raise ValueError("question must not be empty")
+        if len(v) > 2000:
+            raise ValueError("question exceeds maximum length of 2000 characters")
         return v
 
 
 class ChatQueryResponse(BaseModel):
     answer: str
-    category: str
-    tickers: list[str] = Field(default_factory=list)
-    k: int = 0
+    sources: list[str] = Field(default_factory=list)
+    model_used: str
 
 
 class CompareRequest(BaseModel):

@@ -60,3 +60,8 @@ def political_check(text: str) -> Optional[str]:
             "effects on markets or companies instead."
         )
     return None
+
+
+def check_guardrails(text: str) -> Optional[str]:
+    """Run all pattern checks; return refusal message or None."""
+    return guardrail_check(text) or political_check(text)

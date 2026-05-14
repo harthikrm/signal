@@ -1,9 +1,13 @@
 import os
 from contextlib import contextmanager
+from functools import lru_cache
 from typing import Any, Generator
 
 import psycopg2
 from psycopg2.extensions import connection as PgConnection
+from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
+from sqlalchemy.pool import NullPool
 
 
 def _use_cloud_sql_connector() -> bool:
@@ -40,6 +44,16 @@ def get_connection() -> PgConnection:
     if _use_cloud_sql_connector():
         return _connect_cloud_sql()
     return _connect_direct()
+
+
+@lru_cache(maxsize=1)
+def get_engine() -> Engine:
+    """SQLAlchemy engine (one new DB connection per checkout via creator)."""
+    return create_engine(
+        "postgresql+psycopg2://",
+        creator=get_connection,
+        poolclass=NullPool,
+    )
 
 
 @contextmanager

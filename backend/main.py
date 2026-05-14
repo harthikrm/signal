@@ -2,7 +2,10 @@ import os
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exception_handlers import request_validation_exception_handler
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -14,6 +17,15 @@ from routers import chat, companies, compare, prices, sectors
 load_dotenv()
 
 app = FastAPI(title="Signal API", version="1.0.0")
+
+
+@app.exception_handler(RequestValidationError)
+async def _validation_to_400_for_chat(request: Request, exc: RequestValidationError):
+    """Phase 10: Knowledge chat returns 400 for invalid body (per plan)."""
+    if request.url.path.rstrip("/").endswith("/chat/query"):
+        return JSONResponse(status_code=400, content={"detail": exc.errors()})
+    return await request_validation_exception_handler(request, exc)
+
 
 app.add_middleware(
     CORSMiddleware,
