@@ -1,0 +1,32 @@
+# Copy to `profiles.yml` (gitignored) and fill from `.env`.
+# Run dbt from `dbt/` with: `set -a && source ../.env && set +a && dbt <cmd> --target dev`
+signal:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('DB_HOST', 'localhost') }}"
+      user: "{{ env_var('DB_USER') }}"
+      password: "{{ env_var('DB_PASSWORD') }}"
+      port: "{{ env_var('DB_PORT', '5433') | as_number }}"
+      dbname: "{{ env_var('DB_NAME') }}"
+      schema: signal_dbt
+      threads: 4
+    ci:
+      type: postgres
+      host: "{{ env_var('DB_HOST', 'localhost') }}"
+      user: "{{ env_var('DB_USER') }}"
+      password: "{{ env_var('DB_PASSWORD') }}"
+      port: "{{ env_var('DB_PORT', '5433') | as_number }}"
+      dbname: "{{ env_var('DB_NAME') }}"
+      schema: signal_dbt_ci
+      threads: 4
+    prod:
+      type: postgres
+      host: "{{ env_var('DB_HOST', 'localhost') }}"
+      user: "{{ env_var('DB_USER') }}"
+      password: "{{ env_var('DB_PASSWORD') }}"
+      port: "{{ env_var('DB_PORT', '5433') | as_number }}"
+      dbname: "{{ env_var('DB_NAME') }}"
+      schema: signal_dbt_prod
+      threads: 4

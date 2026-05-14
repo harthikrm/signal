@@ -1,0 +1,6 @@
+ticker,name,sector,exchange,cik
+AAPL,Apple Inc.,Technology,NASDAQ,0000320193
+MSFT,Microsoft Corporation,Technology,NASDAQ,0000789019
+GOOGL,Alphabet Inc.,Technology,NASDAQ,0001652044
+AMZN,Amazon.com Inc.,Consumer Cyclical,NASDAQ,0001018724
+NVDA,NVIDIA Corporation,Technology,NASDAQ,0001045810
