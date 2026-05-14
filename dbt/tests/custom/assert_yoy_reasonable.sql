@@ -1,4 +1,4 @@
-select *
-from {{ ref('fct_company_metrics') }}
-where revenue_growth_yoy is not null
-  and (revenue_growth_yoy < -0.95 or revenue_growth_yoy > 5.0)
+SELECT ticker, period_end, revenue_growth
+FROM {{ ref('int_yoy_growth') }}
+WHERE revenue_growth IS NOT NULL
+  AND (revenue_growth > 500 OR revenue_growth < -100)

@@ -6,6 +6,5 @@ select
     low::numeric as low,
     close::numeric as close,
     volume::bigint as volume,
-    vwap::numeric as vwap,
-    transactions::integer as transactions
+    vwap::numeric as vwap
 from {{ ref('sample_prices') }}

@@ -44,6 +44,8 @@ services:
       context: .
       dockerfile: airflow/Dockerfile
     container_name: signal_airflow
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,9 +58,15 @@ services:
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       PYTHONPATH: /opt/airflow/ingestion
+      # Host-side scripts use .env DB_HOST=localhost DB_PORT=5433; inside the stack, Postgres is the `postgres` service on 5432.
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      # Weekly DAG dbt step: `weekly_metrics_refresh` uses os.getenv("DBT_TARGET","prod")`.
+      DBT_TARGET: dev
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./ingestion:/opt/airflow/ingestion
+      - ./dbt:/opt/airflow/dbt
       - ./.env:/opt/airflow/.env
       - airflow_logs:/opt/airflow/logs
     ports:
@@ -75,6 +83,8 @@ services:
       context: .
       dockerfile: airflow/Dockerfile
     container_name: signal_airflow_scheduler
+    env_file:
+      - .env
     depends_on:
       airflow:
         condition: service_healthy
@@ -82,9 +92,13 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
       PYTHONPATH: /opt/airflow/ingestion
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DBT_TARGET: dev
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./ingestion:/opt/airflow/ingestion
+      - ./dbt:/opt/airflow/dbt
       - ./.env:/opt/airflow/.env
       - airflow_logs:/opt/airflow/logs
     command: airflow scheduler

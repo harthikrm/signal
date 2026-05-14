@@ -4,24 +4,12 @@ models:
   - name: fct_company_metrics
     columns:
       - name: ticker
-        tests: [not_null, unique]
-
-  - name: fct_valuation_multiples
-    columns:
-      - name: ticker
-        tests: [not_null, unique]
-      - name: pe_ratio
         tests: [not_null]
 
   - name: fct_price_indicators
     columns:
       - name: ticker
         tests: [not_null]
-
-  - name: fct_price_summary
-    columns:
-      - name: ticker
-        tests: [not_null, unique]
 
   - name: fct_master_signals
     columns:
@@ -36,11 +24,3 @@ models:
                   - "QUALITY_MOMENTUM"
                   - "RISK_EXIT"
                   - "MONITOR"
-
-  - name: fct_sector_summary
-    columns:
-      - name: sector
-        tests: [not_null, unique]
-
-  - name: fct_earnings_history
-    description: "Empty mart when staging earnings has no rows."

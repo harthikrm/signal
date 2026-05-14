@@ -16,6 +16,7 @@ from polygon_client import get_daily_ohlcv
 from xbrl_parser import extract_metric
 from loaders import upsert_financials, upsert_prices
 from failed_ingestions import log_failure
+import os
 import pandas as pd
 
 default_args = {
@@ -83,6 +84,8 @@ with DAG(
     tags=["signal", "weekly"],
 ) as dag:
 
+    _dbt_target = os.getenv("DBT_TARGET", "prod")
+
     t1 = PythonOperator(task_id="refresh_financials",
                         python_callable=refresh_financials)
     t2 = PythonOperator(task_id="refresh_prices",
@@ -91,8 +94,8 @@ with DAG(
         task_id="run_dbt",
         bash_command=(
             "cd /opt/airflow/dbt && "
-            "dbt run --profiles-dir . --target prod && "
-            "dbt test --profiles-dir . --target prod"
+            f"dbt run --profiles-dir . --target {_dbt_target} && "
+            f"dbt test --profiles-dir . --target {_dbt_target}"
         ),
     )
 

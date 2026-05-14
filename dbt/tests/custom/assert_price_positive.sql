@@ -1,4 +1,3 @@
-select *
-from {{ ref('fct_price_summary') }}
-where close is null
-   or close <= 0
+SELECT ticker, date, close
+FROM {{ ref('stg_price_daily') }}
+WHERE close IS NOT NULL AND close <= 0

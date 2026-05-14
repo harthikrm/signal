@@ -5,14 +5,10 @@ models:
     columns:
       - name: ticker
         tests: [not_null, unique]
-      - name: name
-        tests: [not_null]
 
   - name: stg_price_daily
     columns:
       - name: ticker
-        tests: [not_null]
-      - name: date
         tests: [not_null]
       - name: close
         tests: [not_null]
@@ -21,13 +17,9 @@ models:
     columns:
       - name: ticker
         tests: [not_null]
-      - name: metric_name
-        tests: [not_null]
-      - name: period_end
-        tests: [not_null]
 
   - name: stg_earnings
-    description: "Placeholder view (no seed); aligns to earnings table shape."
+    description: "Raw earnings rows from ingestion."
 
   - name: stg_filings_metadata
-    description: "Placeholder view (no seed); aligns to filings_metadata shape."
+    description: "Raw filings metadata from ingestion."

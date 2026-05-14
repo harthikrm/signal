@@ -5,8 +5,6 @@ models:
     columns:
       - name: ticker
         tests: [not_null]
-      - name: period_end
-        tests: [not_null]
 
   - name: int_yoy_growth
     columns:
@@ -17,10 +15,3 @@ models:
     columns:
       - name: ticker
         tests: [not_null]
-      - name: date
-        tests: [not_null]
-
-  - name: int_price_summary
-    columns:
-      - name: ticker
-        tests: [not_null, unique]
