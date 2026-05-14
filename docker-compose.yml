@@ -103,28 +103,24 @@ services:
       - airflow_logs:/opt/airflow/logs
     command: airflow scheduler
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # Backend (FastAPI) service is intentionally commented out for Phase 5.
-  # backend/Dockerfile, backend/requirements.txt, and backend/main.py do not
-  # exist yet. Uncomment in Phase 9 Task 1 after those three files are
-  # populated. Rule-3 amendment 2026-05-13.
-  # ──────────────────────────────────────────────────────────────────────────
-  # backend:
-  #   build: ./backend
-  #   container_name: signal_backend
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   environment:
-  #     - DB_HOST=postgres
-  #     - DB_PORT=5432
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - ./backend:/app
-  #   command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+  # Backend (FastAPI) — Phase 9
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: signal_backend
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
 
 volumes:
   postgres_data:

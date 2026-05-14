@@ -102,45 +102,9 @@ COMPANIES = [
 
 TICKERS = [c["ticker"] for c in COMPANIES]
 
-# ── Clearbit Logo Domain Mapping ───────────────────────────────────────────
-# HARTHIK MUST VERIFY ALL DOMAINS BEFORE LAUNCH
-LOGO_DOMAINS = {
-    "NVDA": "nvidia.com",       "AMD": "amd.com",
-    "INTC": "intel.com",        "QCOM": "qualcomm.com",
-    "AVGO": "broadcom.com",     "MU": "micron.com",
-    "AMAT": "appliedmaterials.com", "AMZN": "amazon.com",
-    "MSFT": "microsoft.com",    "GOOGL": "google.com",
-    "ORCL": "oracle.com",       "CRM": "salesforce.com",
-    "NOW": "servicenow.com",    "NET": "cloudflare.com",
-    "CRWD": "crowdstrike.com",  "PANW": "paloaltonetworks.com",
-    "FTNT": "fortinet.com",     "ZS": "zscaler.com",
-    "S": "sentinelone.com",     "OKTA": "okta.com",
-    "TENB": "tenable.com",      "TSLA": "tesla.com",
-    "GM": "gm.com",             "F": "ford.com",
-    "RIVN": "rivian.com",       "NEE": "nexteraenergy.com",
-    "ENPH": "enphase.com",      "FSLR": "firstsolar.com",
-    "V": "visa.com",            "MA": "mastercard.com",
-    "PYPL": "paypal.com",       "SQ": "block.xyz",
-    "AFRM": "affirm.com",       "HOOD": "robinhood.com",
-    "COIN": "coinbase.com",     "MRNA": "modernatx.com",
-    "BNTX": "biontech.com",     "ILMN": "illumina.com",
-    "VRTX": "vrtx.com",         "REGN": "regeneron.com",
-    "ALNY": "alnylam.com",      "BIIB": "biogen.com",
-    "LMT": "lockheedmartin.com","RTX": "rtx.com",
-    "NOC": "northropgrumman.com","LHX": "l3harris.com",
-    "RKLB": "rocketlabusa.com", "TDG": "transdigm.com",
-    "HEI": "heico.com",         "WMT": "walmart.com",
-    "TGT": "target.com",        "COST": "costco.com",
-    "SHOP": "shopify.com",      "MELI": "mercadolibre.com",
-    "DG": "dollargeneral.com",  "HD": "homedepot.com",
-    "NFLX": "netflix.com",      "DIS": "disney.com",
-    "PARA": "paramount.com",    "WBD": "wbd.com",
-    "SPOT": "spotify.com",      "LYV": "livenationentertainment.com",
-    "IHRT": "iheartmedia.com",  "JPM": "jpmorganchase.com",
-    "GS": "goldmansachs.com",   "BLK": "blackrock.com",
-    "MS": "morganstanley.com",  "NDAQ": "nasdaq.com",
-    "SCHW": "schwab.com",       "BRK.B": "berkshirehathaway.com",
-}
+# Logos are served by Logo.dev using ticker symbols directly.
+# URL format: https://img.logo.dev/ticker/{TICKER}?token={TOKEN}
+# No domain mapping needed. Token stored in LOGO_DEV_TOKEN env var.
 
 # ── TradingView Symbol Map ─────────────────────────────────────────────────
 TRADINGVIEW_SYMBOLS = {c["ticker"]: f"{c['exchange']}:{c['ticker']}"
