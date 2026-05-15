@@ -89,4 +89,7 @@ class PriceSnapshotItem(BaseModel):
     ticker: str
     name: str
     sector: Optional[str] = None
+    exchange: Optional[str] = None
     logo_url: Optional[str] = None
+    last_close: Optional[float] = None
+    day_change_pct: Optional[float] = None

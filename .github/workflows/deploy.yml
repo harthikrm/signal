@@ -1,0 +1,121 @@
+name: Signal Deploy Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ── Checkout ─────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Step 1: dbt tests against CI schema ──────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: pip install dbt-core==1.11.9 dbt-postgres==1.10.0
+
+      - name: Run dbt tests against CI schema
+        env:
+          DB_HOST:     ${{ secrets.DB_HOST }}
+          DB_USER:     ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME:     ${{ secrets.DB_NAME }}
+        run: |
+          cd dbt
+          dbt deps
+          dbt seed --target ci
+          dbt run  --target ci
+          dbt test --target ci
+
+      # ── Step 2: FastAPI endpoint tests ───────────────────
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install pytest httpx
+
+      - name: Run FastAPI tests
+        env:
+          SIGNAL_API_KEY:   ${{ secrets.SIGNAL_API_KEY }}
+          DB_HOST:          ${{ secrets.DB_HOST }}
+          DB_USER:          ${{ secrets.DB_USER }}
+          DB_PASSWORD:      ${{ secrets.DB_PASSWORD }}
+          DB_NAME:          ${{ secrets.DB_NAME }}
+          OPENAI_API_KEY:   ${{ secrets.OPENAI_API_KEY }}
+          VOYAGE_API_KEY:   ${{ secrets.VOYAGE_API_KEY }}
+          LOGO_DEV_TOKEN:   ${{ secrets.LOGO_DEV_TOKEN }}
+          LANGCHAIN_API_KEY: ${{ secrets.LANGCHAIN_API_KEY }}
+          LANGCHAIN_PROJECT: signal-development
+          LANGCHAIN_TRACING_V2: "false"
+        run: |
+          cd backend
+          pytest tests/ -v
+
+      # ── Step 3: Build and deploy backend to Cloud Run ────
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        run: |
+          docker build \
+            -f backend/Dockerfile \
+            -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/signal-backend/api:${{ github.sha }} \
+            .
+          docker push \
+            us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/signal-backend/api:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy signal-api \
+            --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/signal-backend/api:${{ github.sha }} \
+            --region us-central1 \
+            --platform managed \
+            --memory 1Gi \
+            --min-instances 1 \
+            --max-instances 5 \
+            --set-env-vars "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" \
+            --set-env-vars "GCP_CLOUD_SQL_CONNECTION_NAME=${{ secrets.GCP_CLOUD_SQL_CONNECTION_NAME }}" \
+            --set-env-vars "DB_NAME=${{ secrets.DB_NAME }}" \
+            --set-env-vars "DB_USER=${{ secrets.DB_USER }}" \
+            --set-env-vars "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" \
+            --set-env-vars "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" \
+            --set-env-vars "VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }}" \
+            --set-env-vars "SIGNAL_API_KEY=${{ secrets.SIGNAL_API_KEY }}" \
+            --set-env-vars "LOGO_DEV_TOKEN=${{ secrets.LOGO_DEV_TOKEN }}" \
+            --set-env-vars "LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}" \
+            --set-env-vars "LANGCHAIN_PROJECT=signal-production" \
+            --set-env-vars "LANGCHAIN_TRACING_V2=true" \
+            --set-env-vars "LLM_MODEL_PRODUCTION=gpt-4o-mini" \
+            --set-env-vars "POLYGON_API_KEY_1=${{ secrets.POLYGON_API_KEY_1 }}" \
+            --set-env-vars "POLYGON_API_KEY_2=${{ secrets.POLYGON_API_KEY_2 }}" \
+            --add-cloudsql-instances ${{ secrets.GCP_CLOUD_SQL_CONNECTION_NAME }} \
+            --allow-unauthenticated
+
+      # ── Step 4: Deploy frontend to Vercel ────────────────
+      - name: Deploy frontend to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token:      ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id:     ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./frontend
+          vercel-args:       '--prod'
