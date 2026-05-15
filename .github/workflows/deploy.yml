@@ -23,6 +23,29 @@ jobs:
       - name: Install dbt
         run: pip install dbt-core==1.11.9 dbt-postgres==1.10.0
 
+      - name: Write dbt profiles.yml for CI
+        working-directory: dbt
+        env:
+          DB_HOST:     ${{ secrets.DB_HOST }}
+          DB_USER:     ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME:     ${{ secrets.DB_NAME }}
+        run: |
+          cat > profiles.yml << EOF
+          signal:
+            target: ci
+            outputs:
+              ci:
+                type: postgres
+                host: ${DB_HOST}
+                port: 5432
+                user: ${DB_USER}
+                password: ${DB_PASSWORD}
+                dbname: ${DB_NAME}
+                schema: ci_test
+                threads: 2
+          EOF
+
       - name: Run dbt tests against CI schema
         env:
           DB_HOST:     ${{ secrets.DB_HOST }}
