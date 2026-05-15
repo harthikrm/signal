@@ -8,6 +8,21 @@ jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: pgvector/pgvector:pg15
+        env:
+          POSTGRES_DB: signal_ci
+          POSTGRES_USER: signal_user
+          POSTGRES_PASSWORD: signal_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
 
       # ── Checkout ─────────────────────────────────────────
@@ -25,11 +40,6 @@ jobs:
 
       - name: Write dbt profiles.yml for CI
         working-directory: dbt
-        env:
-          DB_HOST:     ${{ secrets.DB_HOST }}
-          DB_USER:     ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME:     ${{ secrets.DB_NAME }}
         run: |
           cat > profiles.yml << EOF
           signal:
@@ -37,21 +47,22 @@ jobs:
             outputs:
               ci:
                 type: postgres
-                host: ${DB_HOST}
+                host: localhost
                 port: 5432
-                user: ${DB_USER}
-                password: ${DB_PASSWORD}
-                dbname: ${DB_NAME}
+                user: signal_user
+                password: signal_ci_password
+                dbname: signal_ci
                 schema: ci_test
                 threads: 2
           EOF
 
+      - name: Enable pgvector in CI database
+        run: |
+          PGPASSWORD=signal_ci_password psql \
+            -h localhost -U signal_user -d signal_ci \
+            -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
       - name: Run dbt tests against CI schema
-        env:
-          DB_HOST:     ${{ secrets.DB_HOST }}
-          DB_USER:     ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME:     ${{ secrets.DB_NAME }}
         run: |
           cd dbt
           dbt deps --profiles-dir .
