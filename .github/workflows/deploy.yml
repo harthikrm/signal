@@ -62,6 +62,119 @@ jobs:
             -h localhost -U signal_user -d signal_ci \
             -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
+      - name: Create raw tables in CI database
+        run: |
+          PGPASSWORD=signal_ci_password psql \
+            -h localhost -U signal_user -d signal_ci << 'SQL'
+
+          CREATE TABLE IF NOT EXISTS companies (
+            ticker      VARCHAR(10) PRIMARY KEY,
+            name        TEXT NOT NULL,
+            sector      VARCHAR(50),
+            exchange    VARCHAR(10),
+            cik         VARCHAR(20),
+            logo_url    TEXT,
+            created_at  TIMESTAMP DEFAULT NOW()
+          );
+
+          CREATE TABLE IF NOT EXISTS financials_raw (
+            id          SERIAL PRIMARY KEY,
+            ticker      VARCHAR(10) NOT NULL,
+            metric_name VARCHAR(50) NOT NULL,
+            period_end  DATE NOT NULL,
+            form        VARCHAR(10),
+            value       NUMERIC,
+            created_at  TIMESTAMP DEFAULT NOW(),
+            UNIQUE(ticker, metric_name, period_end, form)
+          );
+
+          CREATE TABLE IF NOT EXISTS price_daily (
+            id           SERIAL PRIMARY KEY,
+            ticker       VARCHAR(10) NOT NULL,
+            date         DATE NOT NULL,
+            open         NUMERIC,
+            high         NUMERIC,
+            low          NUMERIC,
+            close        NUMERIC NOT NULL,
+            volume       BIGINT,
+            vwap         NUMERIC,
+            transactions INTEGER,
+            created_at   TIMESTAMP DEFAULT NOW(),
+            UNIQUE(ticker, date)
+          );
+
+          CREATE TABLE IF NOT EXISTS earnings (
+            id                  SERIAL PRIMARY KEY,
+            ticker              VARCHAR(10) NOT NULL,
+            period_end          DATE NOT NULL,
+            eps_actual          NUMERIC,
+            eps_estimate        NUMERIC,
+            eps_surprise_pct    NUMERIC,
+            revenue_actual      NUMERIC,
+            revenue_estimate    NUMERIC,
+            announcement_date   DATE,
+            reporting_period    VARCHAR(20),
+            created_at          TIMESTAMP DEFAULT NOW(),
+            UNIQUE(ticker, period_end)
+          );
+
+          CREATE TABLE IF NOT EXISTS filings_metadata (
+            id              SERIAL PRIMARY KEY,
+            ticker          VARCHAR(10) NOT NULL,
+            filing_type     VARCHAR(10) NOT NULL,
+            filing_date     DATE NOT NULL,
+            fiscal_year     INTEGER,
+            fiscal_quarter  VARCHAR(6),
+            document_url    TEXT,
+            embedded        BOOLEAN DEFAULT FALSE,
+            created_at      TIMESTAMP DEFAULT NOW(),
+            UNIQUE(ticker, filing_type, filing_date)
+          );
+
+          CREATE TABLE IF NOT EXISTS embeddings (
+            id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            ticker          VARCHAR(10) NOT NULL,
+            filing_type     VARCHAR(10) NOT NULL,
+            filing_date     DATE NOT NULL,
+            fiscal_year     INTEGER,
+            fiscal_quarter  VARCHAR(6),
+            section_label   VARCHAR(100),
+            chunk_index     INTEGER NOT NULL,
+            chunk_text      TEXT NOT NULL,
+            embedding       vector(1024),
+            token_count     INTEGER,
+            created_at      TIMESTAMP DEFAULT NOW(),
+            UNIQUE(ticker, filing_type, filing_date,
+                   section_label, chunk_index)
+          );
+
+          CREATE TABLE IF NOT EXISTS failed_ingestions (
+            id              SERIAL PRIMARY KEY,
+            ticker          VARCHAR(10),
+            metric_name     VARCHAR(50),
+            filing_type     VARCHAR(10),
+            error_type      VARCHAR(50),
+            error_message   TEXT,
+            attempted_at    TIMESTAMP DEFAULT NOW()
+          );
+
+          CREATE TABLE IF NOT EXISTS query_logs (
+            id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            question        TEXT,
+            answer          TEXT,
+            ticker_context  VARCHAR(10),
+            model_used      VARCHAR(50),
+            tokens_in       INTEGER,
+            tokens_out      INTEGER,
+            latency_ms      INTEGER,
+            classification  VARCHAR(30),
+            retrieved_chunks INTEGER,
+            session_id      VARCHAR(64),
+            created_at      TIMESTAMP DEFAULT NOW()
+          );
+
+          SQL
+
       - name: Run dbt tests against CI schema
         run: |
           cd dbt
