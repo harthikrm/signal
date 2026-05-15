@@ -31,10 +31,10 @@ jobs:
           DB_NAME:     ${{ secrets.DB_NAME }}
         run: |
           cd dbt
-          dbt deps
-          dbt seed --target ci
-          dbt run  --target ci
-          dbt test --target ci
+          dbt deps --profiles-dir .
+          dbt seed --target ci --profiles-dir .
+          dbt run  --target ci --profiles-dir .
+          dbt test --target ci --profiles-dir .
 
       # ── Step 2: FastAPI endpoint tests ───────────────────
       - name: Install backend dependencies
