@@ -258,21 +258,7 @@ jobs:
             --memory 1Gi \
             --min-instances 1 \
             --max-instances 5 \
-            --set-env-vars "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}" \
-            --set-env-vars "GCP_CLOUD_SQL_CONNECTION_NAME=${{ secrets.GCP_CLOUD_SQL_CONNECTION_NAME }}" \
-            --set-env-vars "DB_NAME=${{ secrets.DB_NAME }}" \
-            --set-env-vars "DB_USER=${{ secrets.DB_USER }}" \
-            --set-env-vars "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" \
-            --set-env-vars "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" \
-            --set-env-vars "VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }}" \
-            --set-env-vars "SIGNAL_API_KEY=${{ secrets.SIGNAL_API_KEY }}" \
-            --set-env-vars "LOGO_DEV_TOKEN=${{ secrets.LOGO_DEV_TOKEN }}" \
-            --set-env-vars "LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}" \
-            --set-env-vars "LANGCHAIN_PROJECT=signal-production" \
-            --set-env-vars "LANGCHAIN_TRACING_V2=true" \
-            --set-env-vars "LLM_MODEL_PRODUCTION=gpt-4o-mini" \
-            --set-env-vars "POLYGON_API_KEY_1=${{ secrets.POLYGON_API_KEY_1 }}" \
-            --set-env-vars "POLYGON_API_KEY_2=${{ secrets.POLYGON_API_KEY_2 }}" \
+            --set-env-vars "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GCP_CLOUD_SQL_CONNECTION_NAME=${{ secrets.GCP_CLOUD_SQL_CONNECTION_NAME }},DB_NAME=${{ secrets.DB_NAME }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }},SIGNAL_API_KEY=${{ secrets.SIGNAL_API_KEY }},LOGO_DEV_TOKEN=${{ secrets.LOGO_DEV_TOKEN }},LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }},LANGCHAIN_PROJECT=signal-production,LANGCHAIN_TRACING_V2=true,LLM_MODEL_PRODUCTION=gpt-4o-mini,POLYGON_API_KEY_1=${{ secrets.POLYGON_API_KEY_1 }},POLYGON_API_KEY_2=${{ secrets.POLYGON_API_KEY_2 }}" \
             --add-cloudsql-instances ${{ secrets.GCP_CLOUD_SQL_CONNECTION_NAME }} \
             --allow-unauthenticated
 
