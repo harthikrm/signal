@@ -10,6 +10,13 @@ Append-only log of approved plan changes (Rule-3).
 | 2026-05-15 | Phase 10 RAG: `langchain_core.messages` used instead of deprecated `langchain.schema` for `HumanMessage` / `SystemMessage` / `AIMessage`. `main.py` maps `RequestValidationError` to HTTP 400 for `/api/chat/query` only (other routes stay 422). `guardrails/rules.py` adds `check_guardrails()` wrapper (same patterns as `guardrail_check` + `political_check`). `query_logger` keeps `tokens_in`/`tokens_out` columns (passed as 0 when unknown). Retrieval `k` for FILING / MULTI_COMPANY overridable via `RAG_K_FILING` / `RAG_K_MULTI_COMPANY`. Classifier `max_tokens` via `CLASSIFIER_MAX_TOKENS`. LLM `max_tokens` / `temperature` via `LLM_MAX_TOKENS` / `LLM_TEMPERATURE`. | Align with current LangChain packages; satisfy FastAPI 400 for invalid chat body; spec import name `check_guardrails`; Rule 1 env-driven limits; preserve existing `query_logs` schema. | Harthik |
 | 2026-05-16 | Phase 12 CI: `main.py` — `RequestValidationError` handler uses `jsonable_encoder(exc.errors())` so HTTP 400 responses for `/api/chat/query` are JSON-serializable (Pydantic v2 embeds non-JSON types in `ctx`). Same handler extended to paths ending in `/compare` so `POST /api/compare` body validation (e.g. too many tickers) returns **400** with the same shape, matching `backend/tests/test_endpoints.py`. | Unblocks pytest and GitHub Actions Step 2; prior handler raised `TypeError` on invalid chat body. | Harthik |
 
+## Phase gate sign-offs
+
+| Phase | Signed off | Notes |
+|-------|------------|-------|
+| 12 — CI/CD | 2026-05-18 | `deploy.yml` green on `main` (dbt CI → pytest → Artifact Registry → Cloud Run → Vercel). WIF auth; 16 required GitHub secrets. dbt-step failures skip deploy steps (e.g. Actions run 25900806211). |
+| 13 — Deployment | 2026-05-18 | Production at `https://signal.harthik.dev`; Cloud Run health 200; `/api/chat/query` 200 in prod smoke. CI owns deploys after initial stand-up. |
+
 ## Standing rules (logos)
 
 **Standing rule:** Logo URLs are generated dynamically using the Logo.dev ticker-based API. No static domain mapping exists anywhere in the codebase. `LOGO_DEV_TOKEN` must be set in `.env` and in GCP Cloud Run environment variables before launch.
