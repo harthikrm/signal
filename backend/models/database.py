@@ -18,11 +18,11 @@ def _use_cloud_sql_connector() -> bool:
 
 def _connect_direct() -> PgConnection:
     return psycopg2.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        port=int(os.getenv("DB_PORT", "5433")),
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST", "localhost").strip(),
+        port=int(os.getenv("DB_PORT", "5433").strip()),
+        dbname=os.getenv("DB_NAME", "").strip(),
+        user=os.getenv("DB_USER", "").strip(),
+        password=os.getenv("DB_PASSWORD", "").strip(),
     )
 
 
@@ -31,11 +31,11 @@ def _connect_cloud_sql() -> PgConnection:
 
     connector = Connector()
     conn = connector.connect(
-        os.environ["GCP_CLOUD_SQL_CONNECTION_NAME"],
+        os.environ["GCP_CLOUD_SQL_CONNECTION_NAME"].strip(),
         "pg8000",
-        user=os.environ["DB_USER"],
-        password=os.environ["DB_PASSWORD"],
-        db=os.environ["DB_NAME"],
+        user=os.environ["DB_USER"].strip(),
+        password=os.environ["DB_PASSWORD"].strip(),
+        db=os.environ["DB_NAME"].strip(),
     )
     return conn
 
