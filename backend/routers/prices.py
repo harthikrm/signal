@@ -8,7 +8,7 @@ from models.schemas import PriceSnapshotItem
 
 router = APIRouter(prefix="/prices", tags=["prices"])
 
-LOGO_DEV_TOKEN = os.getenv("LOGO_DEV_TOKEN", "")
+LOGO_DEV_TOKEN = os.getenv("LOGO_DEV_TOKEN", "").strip()
 
 
 def _logo_url(ticker: str) -> str | None:
