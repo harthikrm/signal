@@ -258,6 +258,7 @@ jobs:
             --memory 1Gi \
             --min-instances 1 \
             --max-instances 5 \
+            --service-account signal-deployer@signal-platform-2026.iam.gserviceaccount.com \
             --set-env-vars "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},GCP_CLOUD_SQL_CONNECTION_NAME=${{ secrets.GCP_CLOUD_SQL_CONNECTION_NAME }},DB_NAME=${{ secrets.DB_NAME }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},VOYAGE_API_KEY=${{ secrets.VOYAGE_API_KEY }},SIGNAL_API_KEY=${{ secrets.SIGNAL_API_KEY }},LOGO_DEV_TOKEN=${{ secrets.LOGO_DEV_TOKEN }},LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }},LANGCHAIN_PROJECT=signal-production,LANGCHAIN_TRACING_V2=true,LLM_MODEL_PRODUCTION=gpt-4o-mini,POLYGON_API_KEY_1=${{ secrets.POLYGON_API_KEY_1 }},POLYGON_API_KEY_2=${{ secrets.POLYGON_API_KEY_2 }}" \
             --add-cloudsql-instances "${{ secrets.GCP_CLOUD_SQL_CONNECTION_NAME }}" --allow-unauthenticated
 
