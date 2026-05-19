@@ -16,6 +16,7 @@ Append-only log of approved plan changes (Rule-3).
 |-------|------------|-------|
 | 12 — CI/CD | 2026-05-18 | `deploy.yml` green on `main` (dbt CI → pytest → Artifact Registry → Cloud Run → Vercel). WIF auth; 16 required GitHub secrets. dbt-step failures skip deploy steps (e.g. Actions run 25900806211). |
 | 13 — Deployment | 2026-05-18 | Production at `https://signal.harthik.dev`; Cloud Run health 200; `/api/chat/query` 200 in prod smoke. CI owns deploys after initial stand-up. |
+| 14 — Data verification | 2026-05-18 | All six scripts in `data_verification/` written and run; Harthik signed off financials, prices, logos, indicators, embeddings, and RAG. |
 
 ## Standing rules (logos)
 
