@@ -6,7 +6,7 @@ from constants import LOGO_DEV_BASE_URL
 from models.database import db_cursor
 from models.schemas import PriceSnapshotItem
 
-router = APIRouter(prefix="/prices", tags=["prices"])
+router = APIRouter(prefix="/prices", tags=["prices"], redirect_slashes=False)
 
 LOGO_DEV_TOKEN = os.getenv("LOGO_DEV_TOKEN", "").strip()
 

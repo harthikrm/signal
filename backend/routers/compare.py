@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from models.schemas import CompareAnalysisRequest, CompareRequest, CompareResponse
 from services import compare_service
 
-router = APIRouter(prefix="/compare", tags=["compare"])
+router = APIRouter(prefix="/compare", tags=["compare"], redirect_slashes=False)
 
 
 @router.post("/", response_model=CompareResponse)

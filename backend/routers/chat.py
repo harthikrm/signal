@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from models.schemas import ChatQueryRequest, ChatQueryResponse
 from services.rag_pipeline import answer_query
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+router = APIRouter(prefix="/chat", tags=["chat"], redirect_slashes=False)
 
 
 @router.post("/query", response_model=ChatQueryResponse)

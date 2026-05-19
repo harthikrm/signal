@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from models.database import db_cursor
 from models.schemas import SectorRow
 
-router = APIRouter(prefix="/sectors", tags=["sectors"])
+router = APIRouter(prefix="/sectors", tags=["sectors"], redirect_slashes=False)
 
 
 @router.get("/")

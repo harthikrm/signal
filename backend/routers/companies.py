@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from models.database import db_cursor
 from models.schemas import CompanyRow, IndicatorRow, MetricsRow, PriceSummaryRow
 
-router = APIRouter(prefix="/company", tags=["company"])
+router = APIRouter(prefix="/company", tags=["company"], redirect_slashes=False)
 
 
 def _unknown_ticker_message(ticker: str) -> str:
