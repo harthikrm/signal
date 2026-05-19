@@ -1,9 +1,20 @@
 import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
+import "katex/dist/katex.min.css";
 
 import type { ChatMessage } from "../../types/chat";
 
 interface Props {
   message: ChatMessage;
+}
+
+/** LLM sometimes wraps display math in `[ \\text{...} ]` instead of `$$`. */
+function normalizeMathDelimiters(content: string): string {
+  return content.replace(
+    /^\[\s*((?:\\.|[^\]])+)\s*\]$/gm,
+    (_, equation) => `$$\n${String(equation).trim()}\n$$`
+  );
 }
 
 export function MessageBubble({ message }: Props) {
@@ -26,7 +37,12 @@ export function MessageBubble({ message }: Props) {
           <div style={{ whiteSpace: "pre-wrap" }}>{message.content}</div>
         ) : (
           <div className="markdown-body">
-            <ReactMarkdown>{message.content}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+            >
+              {normalizeMathDelimiters(message.content)}
+            </ReactMarkdown>
           </div>
         )}
       </div>

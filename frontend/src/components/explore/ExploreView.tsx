@@ -127,36 +127,44 @@ export function ExploreView() {
 
       {activeTicker && <LeftPanel ticker={activeTicker} />}
 
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-        {!activeTicker && (
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        {snapLoading && !snap && (
+          <div style={{ padding: 24 }}>
+            <Spinner />
+          </div>
+        )}
+        {snap && snap.length > 0 && (
           <div
             style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: 0,
+              flexShrink: 0,
+              marginBottom: activeTicker ? 12 : 0,
+              ...(activeTicker
+                ? {}
+                : {
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: 0,
+                  }),
             }}
           >
-            {snap && snap.length > 0 ? (
-              <TickerSearch
-                companies={snap}
-                onSelect={(ticker) => setActiveTicker(ticker)}
-              />
-            ) : (
-              <Spinner />
-            )}
+            <TickerSearch
+              compact={!!activeTicker}
+              companies={snap}
+              onSelect={(ticker) => setActiveTicker(ticker)}
+            />
           </div>
         )}
 
         {activeTicker && mLoading && (
-          <div style={{ padding: 24 }}>
+          <div style={{ padding: 24, flex: 1, overflowY: "auto", minHeight: 0 }}>
             <Spinner />
           </div>
         )}
         {activeTicker && mErr && <ErrorMessage />}
         {activeTicker && m && (
-          <>
+          <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
             <div style={{ marginBottom: 12 }}>
               <div className="mono price" style={{ fontSize: 14, marginTop: 4 }}>
                 Last close: {formatMetricValue(px?.last_close, "$")}{" "}
@@ -238,7 +246,7 @@ export function ExploreView() {
                   : undefined
               }
             />
-          </>
+          </div>
         )}
       </div>
     </div>
