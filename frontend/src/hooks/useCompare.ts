@@ -13,7 +13,7 @@ export function useCompare(tickers: string[]) {
       });
       return data;
     },
-    enabled: tickers.length >= 2,
+    enabled: false,
     staleTime: 15 * 60 * 1000,
   });
 }

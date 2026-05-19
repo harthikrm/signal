@@ -6,28 +6,16 @@ import { useIndicators } from "../../hooks/useIndicators";
 import { useMetrics } from "../../hooks/useMetrics";
 import { usePriceSnapshot } from "../../hooks/usePriceSnapshot";
 import { usePriceSummary } from "../../hooks/usePriceSummary";
+import { formatMetricValue } from "../../lib/formatMetric";
 import { useAppStore } from "../../store/appStore";
-import TechnicalPanel from "./TechnicalPanel";
-import TradingViewWidget from "./TradingViewWidget";
 import { DataFreshness } from "../ui/DataFreshness";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { MetricTooltip } from "../ui/MetricTooltip";
 import { Spinner } from "../ui/Spinner";
-
-function fmtVal(v: unknown, unit: string): string {
-  if (v == null || v === "") return "—";
-  if (typeof v === "number") {
-    if (unit === "%") return `${v.toFixed(2)}%`;
-    if (unit === "$") {
-      if (Math.abs(v) >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
-      if (Math.abs(v) >= 1e6) return `$${(v / 1e6).toFixed(2)}M`;
-      return `$${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-    }
-    if (unit === "x") return `${v.toFixed(2)}x`;
-    return String(v);
-  }
-  return String(v);
-}
+import { LeftPanel } from "./LeftPanel";
+import TechnicalPanel from "./TechnicalPanel";
+import { TickerSearch } from "./TickerSearch";
+import TradingViewWidget from "./TradingViewWidget";
 
 export function ExploreView() {
   const activeTicker = useAppStore((s) => s.activeTicker);
@@ -63,13 +51,13 @@ export function ExploreView() {
         display: "flex",
         height: "100%",
         minHeight: 0,
-        gap: 16,
+        gap: 12,
         padding: "12px 16px",
       }}
     >
       <div
         style={{
-          width: 280,
+          width: 220,
           flexShrink: 0,
           border: "0.5px solid var(--border)",
           borderRadius: 12,
@@ -109,7 +97,7 @@ export function ExploreView() {
             {row.logo_url ? (
               <img src={row.logo_url} alt="" width={24} height={24} style={{ borderRadius: 4 }} />
             ) : (
-              <div
+              <span
                 style={{
                   width: 24,
                   height: 24,
@@ -124,7 +112,7 @@ export function ExploreView() {
                 style={{
                   fontSize: 11,
                   color: "var(--text-tertiary)",
-                  maxWidth: 200,
+                  maxWidth: 160,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -137,12 +125,30 @@ export function ExploreView() {
         ))}
       </div>
 
+      {activeTicker && <LeftPanel ticker={activeTicker} />}
+
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         {!activeTicker && (
-          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
-            Select a company to view fundamentals.
-          </p>
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 0,
+            }}
+          >
+            {snap && snap.length > 0 ? (
+              <TickerSearch
+                companies={snap}
+                onSelect={(ticker) => setActiveTicker(ticker)}
+              />
+            ) : (
+              <Spinner />
+            )}
+          </div>
         )}
+
         {activeTicker && mLoading && (
           <div style={{ padding: 24 }}>
             <Spinner />
@@ -152,9 +158,8 @@ export function ExploreView() {
         {activeTicker && m && (
           <>
             <div style={{ marginBottom: 12 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 600 }}>{m.ticker}</h2>
               <div className="mono price" style={{ fontSize: 14, marginTop: 4 }}>
-                Last close: {fmtVal(px?.last_close, "$")}{" "}
+                Last close: {formatMetricValue(px?.last_close, "$")}{" "}
                 <span style={{ color: "var(--text-tertiary)", fontSize: 12 }}>
                   {px?.as_of ? `(as of ${px.as_of})` : ""}
                 </span>
@@ -174,10 +179,10 @@ export function ExploreView() {
                     <span>RSI {ind.rsi_14 != null ? ind.rsi_14.toFixed(1) : "—"}</span>
                   </MetricTooltip>
                   <MetricTooltip metricKey="sma_50">
-                    <span>SMA50 {ind.sma_50 != null ? fmtVal(ind.sma_50, "$") : "—"}</span>
+                    <span>SMA50 {ind.sma_50 != null ? formatMetricValue(ind.sma_50, "$") : "—"}</span>
                   </MetricTooltip>
                   <MetricTooltip metricKey="sma_200">
-                    <span>SMA200 {ind.sma_200 != null ? fmtVal(ind.sma_200, "$") : "—"}</span>
+                    <span>SMA200 {ind.sma_200 != null ? formatMetricValue(ind.sma_200, "$") : "—"}</span>
                   </MetricTooltip>
                 </div>
               )}
@@ -221,7 +226,7 @@ export function ExploreView() {
                     </div>
                   </MetricTooltip>
                   <div className="mono metric-value" style={{ fontSize: 14, marginTop: 4 }}>
-                    {fmtVal(m.data[def.key], def.unit)}
+                    {formatMetricValue(m.data[def.key], def.unit)}
                   </div>
                 </div>
               ))}

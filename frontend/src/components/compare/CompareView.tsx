@@ -6,6 +6,7 @@ import { Disclaimer } from "../ui/Disclaimer";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { Spinner } from "../ui/Spinner";
 import { SuggestedQuestions } from "../knowledge/SuggestedQuestions";
+import { CompareTable } from "./CompareTable";
 
 export function CompareView() {
   const compareTickets = useAppStore((s) => s.compareTickets);
@@ -95,7 +96,7 @@ export function CompareView() {
             opacity: compareTickets.length < 2 ? 0.4 : 1,
           }}
         >
-          Run compare
+          Generate AI analysis
         </button>
       </div>
 
@@ -109,25 +110,66 @@ export function CompareView() {
         }}
       />
 
-      <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
-        {isFetching && (
-          <div style={{ padding: 24 }}>
-            <Spinner />
-          </div>
+      <div style={{ flex: 1, overflowY: "auto", minHeight: 0, display: "flex", flexDirection: "column", gap: 20 }}>
+        {compareTickets.length >= 2 && (
+          <section>
+            <h3
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--text-secondary)",
+                marginBottom: 10,
+              }}
+            >
+              Metrics comparison
+            </h3>
+            <CompareTable tickers={compareTickets} />
+          </section>
         )}
-        {error && <ErrorMessage />}
-        {data && (
-          <pre
-            style={{
-              whiteSpace: "pre-wrap",
-              fontSize: 13,
-              lineHeight: 1.55,
-              color: "var(--text-primary)",
-              fontFamily: "var(--font-display)",
-            }}
-          >
-            {data.content}
-          </pre>
+
+        {compareTickets.length >= 2 && (
+          <section>
+            <h3
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--text-secondary)",
+                marginBottom: 10,
+              }}
+            >
+              AI analysis
+            </h3>
+            {isFetching && (
+              <div style={{ padding: 12 }}>
+                <Spinner />
+              </div>
+            )}
+            {error && <ErrorMessage />}
+            {data && (
+              <pre
+                style={{
+                  whiteSpace: "pre-wrap",
+                  fontSize: 13,
+                  lineHeight: 1.55,
+                  color: "var(--text-primary)",
+                  fontFamily: "var(--font-display)",
+                }}
+              >
+                {data.content}
+              </pre>
+            )}
+            {!data && !isFetching && !error && (
+              <p style={{ fontSize: 13, color: "var(--text-tertiary)" }}>
+                Click &quot;Generate AI analysis&quot; for a narrative comparison.
+              </p>
+            )}
+          </section>
+        )}
+
+        {compareTickets.length < 2 && (
+          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
+            Add at least two tickers to compare metrics side by side.
+          </p>
         )}
       </div>
 
