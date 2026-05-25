@@ -8,6 +8,30 @@ const tabs = [
   { id: "compare" as const, label: "Compare" },
 ];
 
+function SignalLogo() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M4 16 C4 16 8 8 12 12 C16 16 20 8 20 8"
+        stroke="white"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <circle cx="4" cy="16" r="1.5" fill="white" />
+      <circle cx="20" cy="8" r="1.5" fill="white" />
+    </svg>
+  );
+}
+
 export function TopBar() {
   const activeTab = useAppStore((s) => s.activeTab);
   const setActiveTab = useAppStore((s) => s.setActiveTab);
@@ -37,15 +61,24 @@ export function TopBar() {
         }}
       >
         <div
-          className="mono"
           style={{
-            color: "var(--accent)",
-            fontWeight: 600,
-            fontSize: 15,
-            letterSpacing: "-0.02em",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
           }}
         >
-          ◈ Signal
+          <SignalLogo />
+          <span
+            className="mono"
+            style={{
+              color: "#ffffff",
+              fontWeight: 600,
+              fontSize: 15,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Signal
+          </span>
         </div>
         <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
           {tabs.map((t) => {

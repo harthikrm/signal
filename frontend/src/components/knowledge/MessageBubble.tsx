@@ -1,3 +1,4 @@
+import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
@@ -9,16 +10,66 @@ interface Props {
   message: ChatMessage;
 }
 
-/** LLM sometimes wraps display math in `[ \\text{...} ]` instead of `$$`. */
-function normalizeMathDelimiters(content: string): string {
-  return content.replace(
-    /^\[\s*((?:\\.|[^\]])+)\s*\]$/gm,
-    (_, equation) => `$$\n${String(equation).trim()}\n$$`
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** LLM sometimes uses bracket/paren delimiters instead of $$ / $. */
+export function normalizeMathDelimiters(content: string): string {
+  let out = content;
+
+  out = out.replace(/\\\[([\s\S]*?)\\\]/g, (_, equation) => {
+    return `$$\n${String(equation).trim()}\n$$`;
+  });
+
+  out = out.replace(/\\\(([\s\S]*?)\\\)/g, (_, equation) => {
+    return `$${String(equation).trim()}$`;
+  });
+
+  out = out.replace(/^\[\s*([\s\S]*?)\s*\]$/gm, (_, equation) => {
+    const eq = String(equation).trim();
+    if (eq.includes("\\")) {
+      return `$$\n${eq}\n$$`;
+    }
+    return `[${eq}]`;
+  });
+
+  out = out.replace(
+    /\[\s*((?:\\.|[^\]])+)\s*\]/g,
+    (match, equation) => {
+      const eq = String(equation).trim();
+      if (eq.includes("\\")) {
+        return `$$${eq}$$`;
+      }
+      return match;
+    }
   );
+
+  return out;
 }
+
+export function formatSourcePill(source: string): string {
+  const citation = source.split(",")[0].trim();
+  const parts = citation.split(/\s+/);
+  if (parts.length < 2) {
+    return citation.slice(0, 48);
+  }
+
+  const ticker = parts[0];
+  const filingType = parts[1];
+  const maybeDate = parts[2] ?? "";
+  const year = DATE_RE.test(maybeDate) ? maybeDate.slice(0, 4) : "";
+
+  return year ? `${ticker} ${filingType} ${year}` : `${ticker} ${filingType}`;
+}
+
+const markdownComponents: Components = {
+  ul: ({ children }) => <ul className="answer-list">{children}</ul>,
+  li: ({ children }) => <li>{children}</li>,
+};
 
 export function MessageBubble({ message }: Props) {
   const isUser = message.role === "user";
+  const pills = message.sources.map(formatSourcePill);
+  const uniquePills = [...new Set(pills)];
 
   return (
     <div style={{ alignSelf: isUser ? "flex-end" : "flex-start", maxWidth: "92%" }}>
@@ -40,15 +91,23 @@ export function MessageBubble({ message }: Props) {
             <ReactMarkdown
               remarkPlugins={[remarkMath]}
               rehypePlugins={[rehypeKatex]}
+              components={markdownComponents}
             >
               {normalizeMathDelimiters(message.content)}
             </ReactMarkdown>
           </div>
         )}
       </div>
-      {!isUser && message.sources.length > 0 && (
-        <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-tertiary)" }}>
-          Sources: {message.sources.join(" · ")}
+      {!isUser && uniquePills.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <div className="source-label">Sources</div>
+          <div className="source-pills">
+            {uniquePills.map((pill) => (
+              <span key={pill} className="source-pill">
+                {pill}
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </div>

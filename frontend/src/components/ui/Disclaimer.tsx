@@ -5,7 +5,7 @@ export function Disclaimer() {
         fontSize: 11,
         color: "var(--text-tertiary)",
         textAlign: "center",
-        marginTop: 8,
+        marginTop: 0,
         lineHeight: 1.4,
       }}
     >

@@ -12,16 +12,26 @@ export function MobileGate() {
         textAlign: "center",
       }}
     >
-      <div
-        className="mono"
-        style={{
-          color: "var(--accent)",
-          fontSize: 32,
-          marginBottom: 12,
-        }}
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ marginBottom: 12 }}
+        aria-hidden
       >
-        ◈
-      </div>
+        <path
+          d="M4 16 C4 16 8 8 12 12 C16 16 20 8 20 8"
+          stroke="white"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <circle cx="4" cy="16" r="1.5" fill="white" />
+        <circle cx="20" cy="8" r="1.5" fill="white" />
+      </svg>
       <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 12 }}>
         Signal
       </h1>
