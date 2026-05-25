@@ -51,6 +51,9 @@ export function ExploreView() {
 
   const snapRow = snap?.find((r) => r.ticker === activeTicker);
   const metricData = metrics?.data ?? {};
+  const companies = snap ?? [];
+
+  console.log("snap length:", snap?.length, "activeTicker:", activeTicker);
 
   if (!activeTicker) {
     return (
@@ -59,13 +62,12 @@ export function ExploreView() {
           <div className="explore-empty">
             {snapLoading && <Spinner />}
             {snapErr && <ErrorMessage />}
-            {snap && snap.length > 0 && (
-              <TickerSearch
-                mode="empty"
-                companies={snap}
-                onSelect={(ticker) => setActiveTicker(ticker)}
-              />
-            )}
+            <TickerSearch
+              mode="empty"
+              sticky={false}
+              companies={companies}
+              onSelect={(ticker) => setActiveTicker(ticker)}
+            />
           </div>,
           document.body
         )}
@@ -75,15 +77,13 @@ export function ExploreView() {
 
   return (
     <div className="explore-detail">
-      {snap && (
-        <ExploreStickySearch
-          ticker={activeTicker}
-          companyName={company?.name ?? snapRow?.name}
-          companies={snap}
-          onSelect={(ticker) => setActiveTicker(ticker)}
-          onClear={() => setActiveTicker(null)}
-        />
-      )}
+      <ExploreStickySearch
+        ticker={activeTicker}
+        companyName={company?.name ?? snapRow?.name}
+        companies={companies}
+        onSelect={(ticker) => setActiveTicker(ticker)}
+        onClear={() => setActiveTicker(null)}
+      />
 
       {mLoading && (
         <div style={{ padding: 48, display: "flex", justifyContent: "center" }}>

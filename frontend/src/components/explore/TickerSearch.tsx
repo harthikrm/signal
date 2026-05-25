@@ -9,6 +9,7 @@ interface BaseProps {
 
 interface EmptyProps extends BaseProps {
   mode?: "empty";
+  sticky?: false;
 }
 
 interface StickyProps extends BaseProps {
@@ -30,6 +31,7 @@ export function TickerSearch(props: Props) {
 
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState(false);
+  const [emptyOpen, setEmptyOpen] = useState(false);
   const [clearHover, setClearHover] = useState(false);
 
   const selectedTicker = sticky ? props.selectedTicker : "";
@@ -42,7 +44,7 @@ export function TickerSearch(props: Props) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toUpperCase();
-    if (!q) return companies.slice(0, sticky ? 8 : 12);
+    if (!q) return companies.slice(0, sticky ? 8 : 70);
     return companies
       .filter(
         (c) =>
@@ -52,7 +54,9 @@ export function TickerSearch(props: Props) {
       .slice(0, sticky ? 8 : 12);
   }, [companies, query, sticky]);
 
-  const showResults = editing && query.trim().length > 0 && filtered.length > 0;
+  const showResults = sticky
+    ? editing && query.trim().length > 0 && filtered.length > 0
+    : (emptyOpen || query.trim().length > 0) && filtered.length > 0;
 
   const inputValue = sticky
     ? editing
@@ -64,6 +68,14 @@ export function TickerSearch(props: Props) {
     if (sticky) {
       setEditing(true);
       setQuery("");
+    } else {
+      setEmptyOpen(true);
+    }
+  };
+
+  const handleBlur = () => {
+    if (!sticky) {
+      window.setTimeout(() => setEmptyOpen(false), 150);
     }
   };
 
@@ -127,6 +139,7 @@ export function TickerSearch(props: Props) {
           setQuery(e.target.value);
         }}
         onFocus={handleFocus}
+        onBlur={handleBlur}
         placeholder={sticky ? "Search ticker or company" : "TCKR"}
         autoFocus={!sticky}
         style={inputStyle}
@@ -181,6 +194,7 @@ export function TickerSearch(props: Props) {
                   onSelect(c.ticker);
                   setQuery("");
                   setEditing(false);
+                  setEmptyOpen(false);
                 }}
                 style={{
                   width: "100%",
