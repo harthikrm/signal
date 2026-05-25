@@ -20,7 +20,7 @@ export default function TechnicalPanel({ symbol }: Props) {
       width: "100%",
       height: 400,
       symbol: symbol,
-      showIntervalTabs: true,
+      showIntervalTabs: false,
       locale: "en",
       colorTheme: "dark",
       isTransparent: true,

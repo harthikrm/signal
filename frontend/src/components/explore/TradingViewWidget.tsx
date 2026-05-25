@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react"
 
 interface Props {
-  symbol: string // e.g. "NASDAQ:NVDA" or "NYSE:JPM"
+  symbol: string;
+  height?: number;
 }
 
-export default function TradingViewWidget({ symbol }: Props) {
+export default function TradingViewWidget({ symbol, height = 500 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function TradingViewWidget({ symbol }: Props) {
     <div
       className="tradingview-widget-container"
       ref={containerRef}
-      style={{ height: "480px", width: "100%" }}
+      style={{ height, width: "100%" }}
     />
   )
 }

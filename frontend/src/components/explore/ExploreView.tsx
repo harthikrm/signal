@@ -1,30 +1,46 @@
 import { useMemo } from "react";
+import { createPortal } from "react-dom";
 
 import { getTradingViewSymbol } from "../../constants/companies";
-import { METRICS } from "../../constants/metrics";
-import { useIndicators } from "../../hooks/useIndicators";
+import { useCompany } from "../../hooks/useCompany";
 import { useMetrics } from "../../hooks/useMetrics";
 import { usePriceSnapshot } from "../../hooks/usePriceSnapshot";
-import { usePriceSummary } from "../../hooks/usePriceSummary";
 import { formatMetricValue } from "../../lib/formatMetric";
 import { useAppStore } from "../../store/appStore";
-import { DataFreshness } from "../ui/DataFreshness";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { MetricTooltip } from "../ui/MetricTooltip";
 import { Spinner } from "../ui/Spinner";
-import { LeftPanel } from "./LeftPanel";
+import { ExploreStickySearch } from "./ExploreStickySearch";
+import { MetricsGrid } from "./MetricsGrid";
+import MiniChartWidget from "./MiniChartWidget";
+import SingleIndicatorWidget from "./SingleIndicatorWidget";
 import TechnicalPanel from "./TechnicalPanel";
 import { TickerSearch } from "./TickerSearch";
 import TradingViewWidget from "./TradingViewWidget";
+
+const KEY_METRICS: { key: string; label: string; unit: string }[] = [
+  { key: "market_cap", label: "Market Cap", unit: "$" },
+  { key: "pe_ratio", label: "P/E Ratio", unit: "x" },
+  { key: "revenue_ttm", label: "Revenue TTM", unit: "$" },
+  { key: "eps_diluted", label: "EPS", unit: "$" },
+];
+
+function weekRangeLabel(data: Record<string, unknown>): string {
+  const hi = data.week_52_high;
+  const lo = data.week_52_low;
+  if (hi == null && lo == null) return "—";
+  const h = hi != null ? formatMetricValue(hi, "$") : "—";
+  const l = lo != null ? formatMetricValue(lo, "$") : "—";
+  return `${h} / ${l}`;
+}
 
 export function ExploreView() {
   const activeTicker = useAppStore((s) => s.activeTicker);
   const setActiveTicker = useAppStore((s) => s.setActiveTicker);
   const { data: snap, isLoading: snapLoading, error: snapErr, exchangeByTicker } =
     usePriceSnapshot();
-  const { data: m, isLoading: mLoading, error: mErr } = useMetrics(activeTicker);
-  const { data: px } = usePriceSummary(activeTicker);
-  const { data: ind } = useIndicators(activeTicker);
+  const { data: company } = useCompany(activeTicker);
+  const { data: metrics, isLoading: mLoading, error: mErr } = useMetrics(activeTicker);
 
   const tradingViewSymbol = useMemo(() => {
     if (!activeTicker) return null;
@@ -33,222 +49,191 @@ export function ExploreView() {
     return getTradingViewSymbol(activeTicker, exchange);
   }, [activeTicker, exchangeByTicker]);
 
-  const gridMetrics = useMemo(() => {
-    if (!m?.data) return [];
-    const keys = new Set(Object.keys(m.data));
-    return METRICS.filter(
-      (def) =>
-        keys.has(def.key) &&
-        !["period_end", "period_type", "fiscal_year", "form", "ticker"].includes(
-          def.key
-        )
-    ).slice(0, 24);
-  }, [m]);
+  const snapRow = snap?.find((r) => r.ticker === activeTicker);
+  const metricData = metrics?.data ?? {};
+
+  if (!activeTicker) {
+    return (
+      <>
+        {createPortal(
+          <div className="explore-empty">
+            {snapLoading && <Spinner />}
+            {snapErr && <ErrorMessage />}
+            {snap && snap.length > 0 && (
+              <TickerSearch
+                mode="empty"
+                companies={snap}
+                onSelect={(ticker) => setActiveTicker(ticker)}
+              />
+            )}
+          </div>,
+          document.body
+        )}
+      </>
+    );
+  }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100%",
-        minHeight: 0,
-        gap: 12,
-        padding: "12px 16px",
-      }}
-    >
-      <div
-        style={{
-          width: 220,
-          flexShrink: 0,
-          border: "0.5px solid var(--border)",
-          borderRadius: 12,
-          overflowY: "auto",
-          background: "var(--bg-secondary)",
-        }}
-      >
-        {snapLoading && (
-          <div style={{ padding: 16 }}>
-            <Spinner />
-          </div>
-        )}
-        {snapErr && (
-          <div style={{ padding: 12 }}>
-            <ErrorMessage />
-          </div>
-        )}
-        {snap?.map((row) => (
-          <button
-            key={row.ticker}
-            type="button"
-            onClick={() => setActiveTicker(row.ticker)}
+    <div className="explore-detail">
+      {snap && (
+        <ExploreStickySearch
+          ticker={activeTicker}
+          companyName={company?.name ?? snapRow?.name}
+          companies={snap}
+          onSelect={(ticker) => setActiveTicker(ticker)}
+          onClear={() => setActiveTicker(null)}
+        />
+      )}
+
+      {mLoading && (
+        <div style={{ padding: 48, display: "flex", justifyContent: "center" }}>
+          <Spinner />
+        </div>
+      )}
+      {mErr && (
+        <div style={{ padding: 24 }}>
+          <ErrorMessage />
+        </div>
+      )}
+
+      {metrics && (
+        <>
+          <header
             style={{
-              width: "100%",
               display: "flex",
               alignItems: "center",
-              gap: 10,
-              padding: "10px 12px",
-              border: "none",
-              borderBottom: "0.5px solid var(--border)",
-              background:
-                activeTicker === row.ticker ? "var(--bg-tertiary)" : "transparent",
-              cursor: "pointer",
-              textAlign: "left",
+              gap: 12,
+              padding: "20px 24px",
             }}
           >
-            {row.logo_url ? (
-              <img src={row.logo_url} alt="" width={24} height={24} style={{ borderRadius: 4 }} />
+            {snapRow?.logo_url ? (
+              <img
+                src={snapRow.logo_url}
+                alt=""
+                width={32}
+                height={32}
+                style={{ borderRadius: 6, objectFit: "cover" }}
+              />
             ) : (
               <span
                 style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 4,
-                  background: "var(--bg-tertiary)",
+                  width: 32,
+                  height: 32,
+                  borderRadius: 6,
+                  background: "rgba(255,255,255,0.08)",
                 }}
               />
             )}
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 13 }}>{row.ticker}</div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <h2
+                style={{
+                  fontSize: 18,
+                  fontWeight: 600,
+                  margin: 0,
+                  lineHeight: 1.2,
+                }}
+              >
+                {company?.name ?? snapRow?.name ?? activeTicker}
+              </h2>
+              {(company?.sector ?? snapRow?.sector) && (
+                <span
+                  style={{
+                    display: "inline-block",
+                    marginTop: 6,
+                    fontSize: 11,
+                    color: "var(--text-secondary)",
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    border: "0.5px solid rgba(255,255,255,0.12)",
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                >
+                  {company?.sector ?? snapRow?.sector}
+                </span>
+              )}
+            </div>
+          </header>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              gap: 16,
+              padding: "16px 24px",
+              borderBottom: "0.5px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            {KEY_METRICS.map((m) => (
+              <div key={m.key} style={{ flex: "1 1 120px", minWidth: 100 }}>
+                <MetricTooltip metricKey={m.key}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "var(--text-tertiary)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {m.label}
+                  </div>
+                </MetricTooltip>
+                <div
+                  className="mono metric-value"
+                  style={{ fontSize: 14, fontWeight: 500 }}
+                >
+                  {formatMetricValue(metricData[m.key], m.unit)}
+                </div>
+              </div>
+            ))}
+            <div style={{ flex: "1 1 120px", minWidth: 100 }}>
               <div
                 style={{
                   fontSize: 11,
                   color: "var(--text-tertiary)",
-                  maxWidth: 160,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  marginBottom: 4,
                 }}
               >
-                {row.name}
+                52W High / Low
+              </div>
+              <div
+                className="mono metric-value"
+                style={{ fontSize: 14, fontWeight: 500 }}
+              >
+                {weekRangeLabel(metricData)}
               </div>
             </div>
-          </button>
-        ))}
-      </div>
-
-      {activeTicker && <LeftPanel ticker={activeTicker} />}
-
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        {snapLoading && !snap && (
-          <div style={{ padding: 24 }}>
-            <Spinner />
           </div>
-        )}
-        {snap && snap.length > 0 && (
-          <div
-            style={{
-              flexShrink: 0,
-              marginBottom: activeTicker ? 12 : 0,
-              ...(activeTicker
-                ? {}
-                : {
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 0,
-                  }),
-            }}
-          >
-            <TickerSearch
-              compact={!!activeTicker}
-              companies={snap}
-              onSelect={(ticker) => setActiveTicker(ticker)}
-            />
-          </div>
-        )}
 
-        {activeTicker && mLoading && (
-          <div style={{ padding: 24, flex: 1, overflowY: "auto", minHeight: 0 }}>
-            <Spinner />
-          </div>
-        )}
-        {activeTicker && mErr && <ErrorMessage />}
-        {activeTicker && m && (
-          <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
-            <div style={{ marginBottom: 12 }}>
-              <div className="mono price" style={{ fontSize: 14, marginTop: 4 }}>
-                Last close: {formatMetricValue(px?.last_close, "$")}{" "}
-                <span style={{ color: "var(--text-tertiary)", fontSize: 12 }}>
-                  {px?.as_of ? `(as of ${px.as_of})` : ""}
-                </span>
-              </div>
-              {ind && (
-                <div
-                  className="mono"
-                  style={{
-                    fontSize: 12,
-                    color: "var(--text-secondary)",
-                    marginTop: 6,
-                    display: "flex",
-                    gap: 16,
-                  }}
-                >
-                  <MetricTooltip metricKey="rsi_14">
-                    <span>RSI {ind.rsi_14 != null ? ind.rsi_14.toFixed(1) : "—"}</span>
-                  </MetricTooltip>
-                  <MetricTooltip metricKey="sma_50">
-                    <span>SMA50 {ind.sma_50 != null ? formatMetricValue(ind.sma_50, "$") : "—"}</span>
-                  </MetricTooltip>
-                  <MetricTooltip metricKey="sma_200">
-                    <span>SMA200 {ind.sma_200 != null ? formatMetricValue(ind.sma_200, "$") : "—"}</span>
-                  </MetricTooltip>
-                </div>
-              )}
-            </div>
-            {tradingViewSymbol && (
+          {tradingViewSymbol && (
+            <>
+              <TradingViewWidget symbol={tradingViewSymbol} height={500} />
+              <TechnicalPanel symbol={tradingViewSymbol} />
+
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  marginBottom: 12,
-                  flexShrink: 0,
-                  minHeight: 0,
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "var(--text-tertiary)",
+                  padding: "20px 24px 12px",
                 }}
               >
-                <TradingViewWidget symbol={tradingViewSymbol} />
-                <TechnicalPanel symbol={tradingViewSymbol} />
+                Technical Indicators
               </div>
-            )}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 10,
-                overflowY: "auto",
-              }}
-            >
-              {gridMetrics.map((def) => (
-                <div
-                  key={def.key}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 10,
-                    border: "0.5px solid var(--border)",
-                    background: "var(--bg-secondary)",
-                  }}
-                >
-                  <MetricTooltip metricKey={def.key}>
-                    <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
-                      {def.label}
-                    </div>
-                  </MetricTooltip>
-                  <div className="mono metric-value" style={{ fontSize: 14, marginTop: 4 }}>
-                    {formatMetricValue(m.data[def.key], def.unit)}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <DataFreshness
-              date={
-                m.data["period_end"]
-                  ? String(m.data["period_end"])
-                  : undefined
-              }
-            />
-          </div>
-        )}
-      </div>
+
+              <MiniChartWidget symbol={tradingViewSymbol} />
+              <SingleIndicatorWidget symbol={tradingViewSymbol} indicator="RSI" />
+              <SingleIndicatorWidget symbol={tradingViewSymbol} indicator="MACD" />
+            </>
+          )}
+
+          <MetricsGrid data={metricData} />
+        </>
+      )}
     </div>
   );
 }

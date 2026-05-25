@@ -5,11 +5,16 @@ import type { PriceSnapshotItem } from "../../types/company";
 interface Props {
   companies: PriceSnapshotItem[];
   onSelect: (ticker: string) => void;
-  compact?: boolean;
+  mode?: "empty" | "compact";
 }
 
-export function TickerSearch({ companies, onSelect, compact = false }: Props) {
+export function TickerSearch({
+  companies,
+  onSelect,
+  mode = "empty",
+}: Props) {
   const [query, setQuery] = useState("");
+  const compact = mode === "compact";
 
   const filtered = useMemo(() => {
     const q = query.trim().toUpperCase();
@@ -25,12 +30,40 @@ export function TickerSearch({ companies, onSelect, compact = false }: Props) {
 
   const showResults = query.trim().length > 0 && filtered.length > 0;
 
+  const inputStyle = compact
+    ? {
+        width: "100%",
+        padding: "6px 10px",
+        fontSize: 13,
+        fontWeight: 500,
+        borderRadius: 8,
+        border: "0.5px solid rgba(255,255,255,0.15)",
+        background: "rgba(255,255,255,0.05)",
+        color: "#ffffff",
+        outline: "none",
+        fontFamily: "var(--font-mono)",
+      }
+    : {
+        width: "100%",
+        padding: "14px 20px",
+        fontSize: 16,
+        fontWeight: 500,
+        borderRadius: 8,
+        border: "0.5px solid rgba(255,255,255,0.15)",
+        background: "rgba(255,255,255,0.05)",
+        color: "#ffffff",
+        outline: "none",
+        textAlign: "center" as const,
+        letterSpacing: "0.12em",
+        fontFamily: "var(--font-mono)",
+      };
+
   return (
     <div
       style={{
         width: "100%",
-        maxWidth: compact ? "100%" : 420,
-        textAlign: compact ? "left" : "center",
+        maxWidth: compact ? "100%" : 400,
+        position: "relative",
       }}
     >
       <input
@@ -39,34 +72,24 @@ export function TickerSearch({ companies, onSelect, compact = false }: Props) {
         onChange={(e) => setQuery(e.target.value)}
         placeholder="TCKR"
         autoFocus={!compact}
-        style={{
-          width: "100%",
-          padding: compact ? "8px 12px" : "16px 20px",
-          fontSize: compact ? 13 : 18,
-          fontWeight: 500,
-          borderRadius: compact ? 8 : 14,
-          border: "1px solid var(--border)",
-          background: compact
-            ? "var(--bg-secondary)"
-            : "radial-gradient(ellipse at center, rgba(249,115,22,0.12) 0%, var(--bg-secondary) 70%)",
-          color: "var(--text-primary)",
-          outline: "none",
-          boxShadow: compact ? "none" : "0 0 40px rgba(249,115,22,0.15)",
-          textAlign: "center",
-          letterSpacing: "0.12em",
-          fontFamily: "var(--font-mono)",
-        }}
+        style={inputStyle}
       />
       {showResults && (
         <ul
           style={{
             listStyle: "none",
-            marginTop: compact ? 8 : 20,
+            marginTop: compact ? 6 : 8,
             textAlign: "left",
-            border: "0.5px solid var(--border)",
-            borderRadius: compact ? 8 : 12,
+            border: "0.5px solid rgba(255,255,255,0.12)",
+            borderRadius: 8,
             overflow: "hidden",
-            background: "var(--bg-secondary)",
+            background: "rgba(0,0,0,0.95)",
+            position: compact ? "absolute" : "relative",
+            left: 0,
+            right: 0,
+            zIndex: 30,
+            maxHeight: 280,
+            overflowY: "auto",
           }}
         >
           {filtered.map((c) => (
@@ -84,7 +107,7 @@ export function TickerSearch({ companies, onSelect, compact = false }: Props) {
                   gap: 12,
                   padding: compact ? "8px 12px" : "12px 16px",
                   border: "none",
-                  borderBottom: "0.5px solid var(--border)",
+                  borderBottom: "0.5px solid rgba(255,255,255,0.06)",
                   background: "transparent",
                   cursor: "pointer",
                   color: "var(--text-primary)",

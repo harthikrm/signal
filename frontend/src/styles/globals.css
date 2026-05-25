@@ -223,3 +223,25 @@ body {
 .chat-send-btn:disabled {
   opacity: 0.35;
 }
+
+.explore-empty {
+  position: fixed;
+  top: 56px;
+  bottom: 36px;
+  left: 0;
+  right: 0;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 0 24px;
+}
+
+.explore-detail {
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #000000;
+}
