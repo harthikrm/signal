@@ -112,7 +112,7 @@ export function TopBar() {
                       bottom: 4,
                       height: 2,
                       borderRadius: 1,
-                      background: "var(--accent)",
+                      background: "#60a5fa",
                     }}
                   />
                 )}

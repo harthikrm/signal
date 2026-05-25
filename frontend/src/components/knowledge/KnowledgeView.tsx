@@ -31,69 +31,59 @@ export function KnowledgeView() {
         minHeight: 0,
       }}
     >
-      <div className="knowledge-scroll">
-        <div
-          className="knowledge-scroll-inner"
-          style={
-            showStarters
-              ? {
-                  minHeight: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  gap: 32,
-                }
-              : {
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 14,
-                  minHeight: 0,
-                }
-          }
-        >
-          {showStarters ? (
-            <>
-              <div style={{ maxWidth: 560 }}>
-                <p
-                  style={{
-                    fontSize: 18,
-                    fontStyle: "italic",
-                    color: "var(--text-primary)",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {quote.text}
-                </p>
-                <p
-                  style={{
-                    marginTop: 12,
-                    fontSize: 13,
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  — {quote.author}
-                </p>
-              </div>
-              <SuggestedQuestions
-                questions={KNOWLEDGE_STARTERS}
-                onSelect={(q) => {
-                  void sendMessage(q);
+      {showStarters && (
+        <div className="knowledge-empty-state">
+          <div className="knowledge-empty-state-content">
+            <div>
+              <p
+                style={{
+                  fontSize: 18,
+                  fontStyle: "italic",
+                  color: "var(--text-primary)",
+                  lineHeight: 1.5,
                 }}
-              />
-            </>
-          ) : (
-            <>
-              <ChatHistory />
-              {isLoading && (
-                <div style={{ padding: "4px 0" }}>
-                  <LoadingDots />
-                </div>
-              )}
-            </>
-          )}
+              >
+                {quote.text}
+              </p>
+              <p
+                style={{
+                  marginTop: 12,
+                  fontSize: 13,
+                  color: "var(--text-secondary)",
+                }}
+              >
+                — {quote.author}
+              </p>
+            </div>
+            <SuggestedQuestions
+              questions={KNOWLEDGE_STARTERS}
+              onSelect={(q) => {
+                void sendMessage(q);
+              }}
+            />
+          </div>
         </div>
+      )}
+
+      <div className="knowledge-scroll">
+        {!showStarters && (
+          <div
+            className="knowledge-scroll-inner"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+              minHeight: 0,
+            }}
+          >
+            <ChatHistory />
+            {isLoading && (
+              <div style={{ padding: "4px 0" }}>
+                <LoadingDots />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="knowledge-composer">
