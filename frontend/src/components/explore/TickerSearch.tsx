@@ -1,47 +1,106 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { PriceSnapshotItem } from "../../types/company";
 
-interface Props {
+interface BaseProps {
   companies: PriceSnapshotItem[];
   onSelect: (ticker: string) => void;
-  mode?: "empty" | "compact";
 }
 
-export function TickerSearch({
-  companies,
-  onSelect,
-  mode = "empty",
-}: Props) {
+interface EmptyProps extends BaseProps {
+  mode?: "empty";
+}
+
+interface StickyProps extends BaseProps {
+  mode: "sticky";
+  selectedTicker: string;
+  selectedLabel: string;
+  onClear: () => void;
+}
+
+type Props = EmptyProps | StickyProps;
+
+function isSticky(props: Props): props is StickyProps {
+  return props.mode === "sticky";
+}
+
+export function TickerSearch(props: Props) {
+  const { companies, onSelect } = props;
+  const sticky = isSticky(props);
+
   const [query, setQuery] = useState("");
-  const compact = mode === "compact";
+  const [editing, setEditing] = useState(false);
+  const [clearHover, setClearHover] = useState(false);
+
+  const selectedTicker = sticky ? props.selectedTicker : "";
+
+  useEffect(() => {
+    if (!sticky) return;
+    setQuery("");
+    setEditing(false);
+  }, [sticky, selectedTicker]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toUpperCase();
-    if (!q) return companies.slice(0, compact ? 8 : 12);
+    if (!q) return companies.slice(0, sticky ? 8 : 12);
     return companies
       .filter(
         (c) =>
           c.ticker.toUpperCase().includes(q) ||
           c.name.toUpperCase().includes(q)
       )
-      .slice(0, compact ? 8 : 12);
-  }, [companies, query, compact]);
+      .slice(0, sticky ? 8 : 12);
+  }, [companies, query, sticky]);
 
-  const showResults = query.trim().length > 0 && filtered.length > 0;
+  const showResults = editing && query.trim().length > 0 && filtered.length > 0;
 
-  const inputStyle = compact
+  const inputValue = sticky
+    ? editing
+      ? query
+      : props.selectedLabel
+    : query;
+
+  const handleFocus = () => {
+    if (sticky) {
+      setEditing(true);
+      setQuery("");
+    }
+  };
+
+  const handleClear = () => {
+    setQuery("");
+    setEditing(false);
+    if (sticky) {
+      props.onClear();
+    }
+  };
+
+  const wrapperStyle = sticky
     ? {
         width: "100%",
-        padding: "6px 10px",
-        fontSize: 13,
-        fontWeight: 500,
-        borderRadius: 8,
-        border: "0.5px solid rgba(255,255,255,0.15)",
-        background: "rgba(255,255,255,0.05)",
+        maxWidth: 600,
+        position: "relative" as const,
+      }
+    : {
+        width: "100%",
+        maxWidth: 400,
+        position: "relative" as const,
+      };
+
+  const inputStyle = sticky
+    ? {
+        width: "100%",
+        height: 40,
+        padding: "0 40px 0 16px",
+        fontSize: 14,
+        fontWeight: 400,
+        borderRadius: 6,
+        border: "0.5px solid rgba(255,255,255,0.12)",
+        background: "rgba(255,255,255,0.06)",
         color: "#ffffff",
         outline: "none",
-        fontFamily: "var(--font-mono)",
+        fontFamily: "var(--font-display)",
+        boxSizing: "border-box" as const,
       }
     : {
         width: "100%",
@@ -59,32 +118,54 @@ export function TickerSearch({
       };
 
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: compact ? "100%" : 400,
-        position: "relative",
-      }}
-    >
+    <div style={wrapperStyle}>
       <input
         type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="TCKR"
-        autoFocus={!compact}
+        value={inputValue}
+        onChange={(e) => {
+          if (sticky && !editing) setEditing(true);
+          setQuery(e.target.value);
+        }}
+        onFocus={handleFocus}
+        placeholder={sticky ? "Search ticker or company" : "TCKR"}
+        autoFocus={!sticky}
         style={inputStyle}
       />
+      {sticky && selectedTicker && (
+        <button
+          type="button"
+          onClick={handleClear}
+          onMouseEnter={() => setClearHover(true)}
+          onMouseLeave={() => setClearHover(false)}
+          aria-label="Clear ticker"
+          style={{
+            position: "absolute",
+            right: 12,
+            top: "50%",
+            transform: "translateY(-50%)",
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            fontSize: 18,
+            lineHeight: 1,
+            padding: 0,
+            color: clearHover ? "#ffffff" : "rgba(255,255,255,0.4)",
+          }}
+        >
+          ×
+        </button>
+      )}
       {showResults && (
         <ul
           style={{
             listStyle: "none",
-            marginTop: compact ? 6 : 8,
+            marginTop: 6,
             textAlign: "left",
             border: "0.5px solid rgba(255,255,255,0.12)",
             borderRadius: 8,
             overflow: "hidden",
             background: "rgba(0,0,0,0.95)",
-            position: compact ? "absolute" : "relative",
+            position: "absolute",
             left: 0,
             right: 0,
             zIndex: 30,
@@ -99,13 +180,14 @@ export function TickerSearch({
                 onClick={() => {
                   onSelect(c.ticker);
                   setQuery("");
+                  setEditing(false);
                 }}
                 style={{
                   width: "100%",
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
-                  padding: compact ? "8px 12px" : "12px 16px",
+                  padding: "8px 12px",
                   border: "none",
                   borderBottom: "0.5px solid rgba(255,255,255,0.06)",
                   background: "transparent",
@@ -118,22 +200,22 @@ export function TickerSearch({
                   <img
                     src={c.logo_url}
                     alt=""
-                    width={compact ? 22 : 28}
-                    height={compact ? 22 : 28}
+                    width={22}
+                    height={22}
                     style={{ borderRadius: 6 }}
                   />
                 ) : (
                   <span
                     style={{
-                      width: compact ? 22 : 28,
-                      height: compact ? 22 : 28,
+                      width: 22,
+                      height: 22,
                       borderRadius: 6,
                       background: "var(--bg-tertiary)",
                     }}
                   />
                 )}
                 <span>
-                  <strong style={{ fontSize: compact ? 13 : 14 }}>{c.ticker}</strong>
+                  <strong style={{ fontSize: 13 }}>{c.ticker}</strong>
                   <span
                     style={{
                       display: "block",

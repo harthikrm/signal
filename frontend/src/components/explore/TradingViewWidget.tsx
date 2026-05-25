@@ -5,7 +5,7 @@ interface Props {
   height?: number;
 }
 
-export default function TradingViewWidget({ symbol, height = 500 }: Props) {
+export default function TradingViewWidget({ symbol, height = 680 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function TradingViewWidget({ symbol, height = 500 }: Props) {
     <div
       className="tradingview-widget-container"
       ref={containerRef}
-      style={{ height, width: "100%" }}
+      style={{ height, width: "100%", minWidth: 0 }}
     />
   )
 }

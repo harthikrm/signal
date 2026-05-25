@@ -210,7 +210,14 @@ export function ExploreView() {
 
           {tradingViewSymbol && (
             <>
-              <TradingViewWidget symbol={tradingViewSymbol} height={500} />
+              <div
+                style={{
+                  width: "100%",
+                  minWidth: 0,
+                }}
+              >
+                <TradingViewWidget symbol={tradingViewSymbol} height={680} />
+              </div>
               <TechnicalPanel symbol={tradingViewSymbol} />
 
               <div
