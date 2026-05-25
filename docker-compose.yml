@@ -53,13 +53,13 @@ services:
         condition: service_healthy
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://signal_user:signal@postgres:5432/signal
       AIRFLOW__CORE__FERNET_KEY: ''
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       PYTHONPATH: /opt/airflow/ingestion
-      # Host-side scripts use .env DB_HOST=localhost DB_PORT=5433; inside the stack, Postgres is the `postgres` service on 5432.
-      DB_HOST: postgres
+      # Phase 16: DAGs ingest into Cloud SQL. Airflow metadata stays on local `postgres` (SQL_ALCHEMY_CONN).
+      DB_HOST: 34.60.78.173
       DB_PORT: "5432"
       # Weekly DAG dbt step: `weekly_metrics_refresh` uses os.getenv("DBT_TARGET","prod")`.
       DBT_TARGET: dev
@@ -90,9 +90,9 @@ services:
         condition: service_healthy
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://signal_user:signal@postgres:5432/signal
       PYTHONPATH: /opt/airflow/ingestion
-      DB_HOST: postgres
+      DB_HOST: 34.60.78.173
       DB_PORT: "5432"
       DBT_TARGET: dev
     volumes:

@@ -13,11 +13,24 @@ from services.knowledge_prompt import KNOWLEDGE_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
-_OUT_OF_SCOPE_REPLY = (
-    "This question is outside Signal's filing research scope or coverage "
-    "universe. I can answer from general finance knowledge only, not from "
-    "retrieved SEC filings for Signal's covered companies."
-)
+_OUT_OF_SCOPE_REPLY = """Signal covers SEC filings and financial data for 70 S&P 500 companies. I can help you with:
+
+- Risk factors and business strategy from 10-K filings
+- Revenue, margins, and financial metrics
+- Earnings history and guidance
+- Comparing companies across sectors
+- General finance concepts like FCF, EBITDA, P/E ratios
+
+Try asking: "What are NVIDIA's biggest risks from their latest 10-K?" or "How has Microsoft's cloud revenue grown over the past 3 years?\""""
+
+_GREETING_REPLY = """Hi! I'm Signal — a financial intelligence platform covering 70 S&P 500 companies. I can help you with:
+
+- SEC filing research (10-K, 10-Q, 8-K) for covered companies
+- Revenue, margins, risks, and financial metrics
+- Comparing companies and sectors
+- General finance concepts like FCF, EBITDA, and P/E ratios
+
+Try: "What are NVIDIA's biggest risks from their latest 10-K?" or "How has Microsoft's cloud revenue grown over the past 3 years?\""""
 _CLASSIFIER_GUARDRAIL_REPLY = (
     "This request cannot be completed within Signal's research and "
     "compliance guidelines."
@@ -189,6 +202,24 @@ def answer_query(
             "answer": _CLASSIFIER_GUARDRAIL_REPLY,
             "sources": [],
             "model_used": "classifier",
+        }
+
+    if category == "GENERAL" and query_classifier.is_greeting(question):
+        latency_ms = int((time.perf_counter() - t0) * 1000)
+        query_logger.log_query(
+            question,
+            _GREETING_REPLY,
+            _ticker_context_value(tickers),
+            "greeting",
+            latency_ms,
+            category,
+            0,
+            session_id,
+        )
+        return {
+            "answer": _GREETING_REPLY,
+            "sources": [],
+            "model_used": "greeting",
         }
 
     chunks = _retrieve_chunks(question, tickers, k)

@@ -1,8 +1,29 @@
 import os
+import re
+
 import voyageai
 from config import CHUNK_SIZE_TOKENS, CHUNK_OVERLAP_TOKENS
 
-client = voyageai.Client(api_key=os.getenv("VOYAGE_API_KEY"))
+# Multi-key failover — tries keys in order when quota is exhausted
+_VOYAGE_KEYS = [
+    k for k in [
+        os.getenv("VOYAGE_API_KEY_1"),
+        os.getenv("VOYAGE_API_KEY_2"),
+        os.getenv("VOYAGE_API_KEY_3"),
+        os.getenv("VOYAGE_API_KEY"),   # legacy fallback
+    ]
+    if k and k.strip()
+]
+
+if not _VOYAGE_KEYS:
+    raise EnvironmentError(
+        "No Voyage AI API keys found. Set VOYAGE_API_KEY_1 in .env"
+    )
+
+_QUOTA_ERROR_WORDS = (
+    "quota", "limit", "exceeded", "exhausted",
+    "insufficient", "billing", "rate", "429", "402",
+)
 
 FILING_SECTIONS = [
     "Item 1",   # Business
@@ -13,6 +34,11 @@ FILING_SECTIONS = [
     "Item 7A",  # Quantitative Disclosures
     "Item 8",   # Financial Statements
 ]
+
+
+def _is_quota_error(exc: Exception) -> bool:
+    err_str = str(exc).lower()
+    return any(word in err_str for word in _QUOTA_ERROR_WORDS)
 
 
 def chunk_filing(filing_text: str, ticker: str,
@@ -59,23 +85,47 @@ def chunk_filing(filing_text: str, ticker: str,
 
 def embed_chunks(chunks: list) -> list:
     """
-    Embed a list of chunks using voyage-finance-2.
-    Returns chunks with embedding field added.
-    Processes in batches of 128 (Voyage AI limit).
+    Embed a list of chunk dicts using voyage-finance-2.
+    Automatically fails over to next API key when quota is exhausted.
+
+    Each chunk dict must have: text or chunk_text, section_label, chunk_index
+    Returns list of chunk dicts with embedding field added.
     """
+    if not chunks:
+        return []
+
     batch_size = 128
-    embedded   = []
+    last_error = None
 
-    for i in range(0, len(chunks), batch_size):
-        batch    = chunks[i:i + batch_size]
-        texts    = [c["chunk_text"] for c in batch]
-        result   = client.embed(texts, model="voyage-finance-2",
-                                input_type="document")
-        for chunk, vector in zip(batch, result.embeddings):
-            chunk["embedding"] = vector
-            embedded.append(chunk)
+    for i, key in enumerate(_VOYAGE_KEYS):
+        try:
+            client = voyageai.Client(api_key=key.strip())
+            embedded = []
+            for start in range(0, len(chunks), batch_size):
+                batch = chunks[start:start + batch_size]
+                texts = [c.get("text") or c.get("chunk_text") for c in batch]
+                result = client.embed(
+                    texts,
+                    model="voyage-finance-2",
+                    input_type="document",
+                )
+                for chunk, embedding in zip(batch, result.embeddings):
+                    embedded.append({**chunk, "embedding": embedding})
+            return embedded
+        except Exception as e:
+            if _is_quota_error(e):
+                print(
+                    f"[embedding] Key {i + 1} exhausted or rate limited, "
+                    "trying next key..."
+                )
+                last_error = e
+                continue
+            raise
 
-    return embedded
+    raise Exception(
+        f"All {len(_VOYAGE_KEYS)} Voyage AI API keys exhausted or failed. "
+        f"Last error: {last_error}"
+    )
 
 
 def embed_query(query_text: str) -> list:
@@ -83,12 +133,31 @@ def embed_query(query_text: str) -> list:
     Embed a single query string for RAG retrieval.
     Uses query input_type for better retrieval alignment.
     """
-    result = client.embed(
-        [query_text],
-        model="voyage-finance-2",
-        input_type="query"
+    last_error = None
+
+    for i, key in enumerate(_VOYAGE_KEYS):
+        try:
+            client = voyageai.Client(api_key=key.strip())
+            result = client.embed(
+                [query_text],
+                model="voyage-finance-2",
+                input_type="query",
+            )
+            return result.embeddings[0]
+        except Exception as e:
+            if _is_quota_error(e):
+                print(
+                    f"[embedding] Key {i + 1} exhausted or rate limited, "
+                    "trying next key..."
+                )
+                last_error = e
+                continue
+            raise
+
+    raise Exception(
+        f"All {len(_VOYAGE_KEYS)} Voyage AI API keys exhausted or failed. "
+        f"Last error: {last_error}"
     )
-    return result.embeddings[0]
 
 
 def _split_by_section(text: str) -> dict:
@@ -97,7 +166,6 @@ def _split_by_section(text: str) -> dict:
     Returns dict of {section_label: section_text}.
     Falls back to full text if sections not found.
     """
-    import re
     sections = {}
     pattern  = r"(Item\s+\d+[A-Z]?\.?\s+[A-Z][^\n]{0,80})"
     parts    = re.split(pattern, text, flags=re.IGNORECASE)

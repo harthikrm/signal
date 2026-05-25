@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const SEND_BLUE = "#60a5fa";
-const SEND_BLUE_HOVER = "rgba(96, 165, 250, 0.85)";
-
 interface Props {
   onSend: (question: string) => void;
   isLoading: boolean;
@@ -10,7 +7,6 @@ interface Props {
 
 export function ChatInput({ onSend, isLoading }: Props) {
   const [value, setValue] = useState("");
-  const [sendHover, setSendHover] = useState(false);
   const ta = useRef<HTMLTextAreaElement>(null);
 
   const resize = useCallback(() => {
@@ -73,25 +69,16 @@ export function ChatInput({ onSend, isLoading }: Props) {
       />
       <button
         type="button"
+        className="chat-send-btn"
         disabled={disabled}
         onClick={submit}
-        onMouseEnter={() => setSendHover(true)}
-        onMouseLeave={() => setSendHover(false)}
         style={{
           width: 36,
           height: 36,
           borderRadius: 8,
           border: "none",
           cursor: disabled ? "default" : "pointer",
-          background: disabled
-            ? SEND_BLUE
-            : sendHover
-              ? SEND_BLUE_HOVER
-              : SEND_BLUE,
-          color: "#ffffff",
           fontWeight: 700,
-          opacity: disabled ? 0.35 : 1,
-          transition: "background 120ms ease",
         }}
         aria-label="Send"
       >
