@@ -19,7 +19,7 @@ export default function MiniChartWidget({ symbol }: Props) {
     script.innerHTML = JSON.stringify({
       symbol,
       width: "100%",
-      height: 300,
+      height: 400,
       locale: "en",
       dateRange: "12M",
       colorTheme: "dark",
@@ -41,7 +41,7 @@ export default function MiniChartWidget({ symbol }: Props) {
     <div
       className="tradingview-widget-container"
       ref={containerRef}
-      style={{ height: 300, width: "100%" }}
+      style={{ height: "400px", width: "100%", minWidth: 0 }}
     />
   );
 }

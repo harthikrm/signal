@@ -216,9 +216,25 @@ export function ExploreView() {
                   minWidth: 0,
                 }}
               >
-                <TradingViewWidget symbol={tradingViewSymbol} height={680} />
+                <TradingViewWidget symbol={tradingViewSymbol} />
               </div>
-              <TechnicalPanel symbol={tradingViewSymbol} />
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "1px",
+                  background: "rgba(255,255,255,0.06)",
+                  width: "100%",
+                }}
+              >
+                <div style={{ background: "#000000", minWidth: 0 }}>
+                  <TechnicalPanel symbol={tradingViewSymbol} />
+                </div>
+                <div style={{ background: "#000000", minWidth: 0 }}>
+                  <MiniChartWidget symbol={tradingViewSymbol} />
+                </div>
+              </div>
 
               <div
                 style={{
@@ -232,7 +248,6 @@ export function ExploreView() {
                 Technical Indicators
               </div>
 
-              <MiniChartWidget symbol={tradingViewSymbol} />
               <SingleIndicatorWidget symbol={tradingViewSymbol} indicator="RSI" />
               <SingleIndicatorWidget symbol={tradingViewSymbol} indicator="MACD" />
             </>

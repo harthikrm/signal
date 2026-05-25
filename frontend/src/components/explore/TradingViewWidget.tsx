@@ -1,25 +1,28 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react";
+
+const CHART_HEIGHT = 680;
 
 interface Props {
   symbol: string;
-  height?: number;
 }
 
-export default function TradingViewWidget({ symbol, height = 680 }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
+export default function TradingViewWidget({ symbol }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current || !symbol) return
+    if (!containerRef.current || !symbol) return;
 
-    // Clear any previous widget
-    containerRef.current.innerHTML = ""
+    containerRef.current.innerHTML = "";
 
-    const script = document.createElement("script")
-    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
-    script.async = true
+    const script = document.createElement("script");
+    script.src =
+      "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.async = true;
     script.innerHTML = JSON.stringify({
-      autosize: true,
-      symbol: symbol,
+      autosize: false,
+      width: "100%",
+      height: CHART_HEIGHT,
+      symbol,
       interval: "D",
       timezone: "America/Chicago",
       theme: "dark",
@@ -32,22 +35,22 @@ export default function TradingViewWidget({ symbol, height = 680 }: Props) {
       save_image: false,
       calendar: false,
       support_host: "https://www.tradingview.com",
-    })
+    });
 
-    containerRef.current.appendChild(script)
+    containerRef.current.appendChild(script);
 
     return () => {
       if (containerRef.current) {
-        containerRef.current.innerHTML = ""
+        containerRef.current.innerHTML = "";
       }
-    }
-  }, [symbol])
+    };
+  }, [symbol]);
 
   return (
     <div
       className="tradingview-widget-container"
       ref={containerRef}
-      style={{ height, width: "100%", minWidth: 0 }}
+      style={{ height: "680px", width: "100%", minWidth: 0 }}
     />
-  )
+  );
 }
