@@ -1,6 +1,7 @@
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import "katex/dist/katex.min.css";
 
@@ -12,36 +13,52 @@ interface Props {
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+const LATEX_CMD_RE =
+  /\\(?:text|frac|sum|int|sqrt|alpha|beta|gamma|delta|times|cdot|left|right|over|underline|mathbf|mathrm)/i;
+const MATH_OPERATOR_RE = /[=+\-*/^]|\\frac|\\sum/;
+
+function looksLikeLatex(content: string): boolean {
+  const s = content.trim();
+  if (!s || isDollarAmount(s) || isPlainPercentage(s)) {
+    return false;
+  }
+  if (LATEX_CMD_RE.test(s)) {
+    return true;
+  }
+  return MATH_OPERATOR_RE.test(s) && /[a-zA-Z]/.test(s);
+}
+
+function isDollarAmount(content: string): boolean {
+  return /^\$?\d[\d,]*\.?\d*[KMBTkmbt%]*$/i.test(content.trim());
+}
+
+function isPlainPercentage(content: string): boolean {
+  return /^\d[\d.,]*%$/.test(content.trim());
+}
+
 /** LLM sometimes uses bracket/paren delimiters instead of $$ / $. */
 export function normalizeMathDelimiters(content: string): string {
   let out = content;
 
   out = out.replace(/\\\[([\s\S]*?)\\\]/g, (_, equation) => {
-    return `$$\n${String(equation).trim()}\n$$`;
+    const eq = String(equation).trim();
+    return looksLikeLatex(eq) ? `$$\n${eq}\n$$` : `\\[${eq}\\]`;
   });
 
   out = out.replace(/\\\(([\s\S]*?)\\\)/g, (_, equation) => {
-    return `$${String(equation).trim()}$`;
-  });
-
-  out = out.replace(/^\[\s*([\s\S]*?)\s*\]$/gm, (_, equation) => {
     const eq = String(equation).trim();
-    if (eq.includes("\\")) {
-      return `$$\n${eq}\n$$`;
-    }
-    return `[${eq}]`;
+    return looksLikeLatex(eq) ? `$${eq}$` : `\\(${eq}\\)`;
   });
 
-  out = out.replace(
-    /\[\s*((?:\\.|[^\]])+)\s*\]/g,
-    (match, equation) => {
-      const eq = String(equation).trim();
-      if (eq.includes("\\")) {
-        return `$$${eq}$$`;
-      }
-      return match;
-    }
-  );
+  out = out.replace(/^\[\s*([\s\S]*?)\s*\]$/gm, (match, equation) => {
+    const eq = String(equation).trim();
+    return looksLikeLatex(eq) ? `$$\n${eq}\n$$` : match;
+  });
+
+  out = out.replace(/\[\s*((?:\\.|[^\]])+)\s*\]/g, (match, equation) => {
+    const eq = String(equation).trim();
+    return looksLikeLatex(eq) ? `$$${eq}$$` : match;
+  });
 
   return out;
 }
@@ -64,6 +81,70 @@ export function formatSourcePill(source: string): string {
 const markdownComponents: Components = {
   ul: ({ children }) => <ul className="answer-list">{children}</ul>,
   li: ({ children }) => <li>{children}</li>,
+  table: ({ children }) => (
+    <div style={{ overflowX: "auto", margin: "12px 0" }}>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontSize: "13px",
+          fontFamily: "var(--font-mono)",
+        }}
+      >
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead
+      style={{
+        borderBottom: "1px solid rgba(255,255,255,0.15)",
+      }}
+    >
+      {children}
+    </thead>
+  ),
+  th: ({ children }) => (
+    <th
+      style={{
+        padding: "8px 12px",
+        textAlign: "left",
+        color: "rgba(255,255,255,0.5)",
+        fontSize: "11px",
+        fontWeight: 500,
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td
+      style={{
+        padding: "8px 12px",
+        borderBottom: "0.5px solid rgba(255,255,255,0.06)",
+        color: "rgba(255,255,255,0.85)",
+        verticalAlign: "top",
+      }}
+    >
+      {children}
+    </td>
+  ),
+  tr: ({ children }) => (
+    <tr
+      style={{ transition: "background 0.1s" }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "transparent";
+      }}
+    >
+      {children}
+    </tr>
+  ),
 };
 
 export function MessageBubble({ message }: Props) {
@@ -89,7 +170,10 @@ export function MessageBubble({ message }: Props) {
         ) : (
           <div className="markdown-body">
             <ReactMarkdown
-              remarkPlugins={[remarkMath]}
+              remarkPlugins={[
+                remarkGfm,
+                [remarkMath, { singleDollarTextMath: false }],
+              ]}
               rehypePlugins={[rehypeKatex]}
               components={markdownComponents}
             >
