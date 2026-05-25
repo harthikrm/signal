@@ -57,7 +57,7 @@ lagged AS (
     SELECT
         *,
         LAG(revenue) OVER (
-            PARTITION BY ticker
+            PARTITION BY ticker, period_type
             ORDER BY period_end
         ) AS prior_revenue
     FROM computed
