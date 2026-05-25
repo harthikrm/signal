@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { createPortal } from "react-dom";
 
 import { KNOWLEDGE_STARTERS } from "../../constants/starters";
 import { PIONEER_QUOTES } from "../../constants/quotes";
@@ -31,39 +32,41 @@ export function KnowledgeView() {
         minHeight: 0,
       }}
     >
-      {showStarters && (
-        <div className="knowledge-empty-state">
-          <div className="knowledge-empty-state-content">
-            <div>
-              <p
-                style={{
-                  fontSize: 18,
-                  fontStyle: "italic",
-                  color: "var(--text-primary)",
-                  lineHeight: 1.5,
+      {showStarters &&
+        createPortal(
+          <div className="knowledge-empty-state">
+            <div className="knowledge-empty-state-content">
+              <div>
+                <p
+                  style={{
+                    fontSize: 18,
+                    fontStyle: "italic",
+                    color: "var(--text-primary)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {quote.text}
+                </p>
+                <p
+                  style={{
+                    marginTop: 12,
+                    fontSize: 13,
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  — {quote.author}
+                </p>
+              </div>
+              <SuggestedQuestions
+                questions={KNOWLEDGE_STARTERS}
+                onSelect={(q) => {
+                  void sendMessage(q);
                 }}
-              >
-                {quote.text}
-              </p>
-              <p
-                style={{
-                  marginTop: 12,
-                  fontSize: 13,
-                  color: "var(--text-secondary)",
-                }}
-              >
-                — {quote.author}
-              </p>
+              />
             </div>
-            <SuggestedQuestions
-              questions={KNOWLEDGE_STARTERS}
-              onSelect={(q) => {
-                void sendMessage(q);
-              }}
-            />
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       <div className="knowledge-scroll">
         {!showStarters && (
