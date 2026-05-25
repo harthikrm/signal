@@ -141,9 +141,10 @@ body {
 }
 
 .knowledge-empty-state {
-  position: fixed;
-  top: 56px;
-  bottom: 192px;
+  /* absolute: parent motion wrapper breaks position:fixed centering */
+  position: absolute;
+  top: 0;
+  bottom: 156px;
   left: 0;
   right: 0;
   display: flex;
