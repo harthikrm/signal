@@ -61,9 +61,17 @@ class CompanyRow(BaseModel):
 
 
 class MetricsRow(BaseModel):
+    """Latest fct_company_metrics row plus price-derived fields in data."""
+
     model_config = {"extra": "allow"}
     ticker: str
-    data: dict[str, Any] = Field(default_factory=dict)
+    data: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "Fundamentals from fct_company_metrics; may include computed "
+            "market_cap, pe_ratio, week_52_high, week_52_low from price_daily."
+        ),
+    )
 
 
 class PriceSummaryRow(BaseModel):

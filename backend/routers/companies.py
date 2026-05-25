@@ -39,7 +39,93 @@ def get_company(ticker: str) -> dict[str, Any]:
 
 
 def _metrics_dict(row: tuple, colnames: list[str]) -> dict[str, Any]:
-    return {k: (v if not isinstance(v, (bytes, memoryview)) else None) for k, v in zip(colnames, row)}
+    out: dict[str, Any] = {}
+    for k, v in zip(colnames, row):
+        if isinstance(v, (bytes, memoryview)):
+            out[k] = None
+        elif hasattr(v, "__float__") and not isinstance(v, bool):
+            out[k] = float(v)
+        else:
+            out[k] = v
+    return out
+
+
+def _latest_non_null_metric(cur: Any, ticker: str, column: str) -> float | None:
+    cur.execute(
+        f"""
+        SELECT "{column}" FROM fct_company_metrics
+        WHERE ticker = %s AND "{column}" IS NOT NULL
+        ORDER BY period_end DESC NULLS LAST
+        LIMIT 1
+        """,
+        (ticker,),
+    )
+    row = cur.fetchone()
+    return _to_float(row[0]) if row else None
+
+
+def _to_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _enrich_metrics_with_price_data(
+    cur: Any, ticker: str, data: dict[str, Any]
+) -> dict[str, Any]:
+    """Add market_cap, pe_ratio, and 52-week range from price_daily + fundamentals."""
+    cur.execute(
+        """
+        SELECT close FROM price_daily
+        WHERE ticker = %s
+        ORDER BY date DESC NULLS LAST
+        LIMIT 1
+        """,
+        (ticker,),
+    )
+    price_row = cur.fetchone()
+    latest_price = _to_float(price_row[0]) if price_row else None
+
+    cur.execute(
+        """
+        SELECT MAX(high) AS week_52_high, MIN(low) AS week_52_low
+        FROM price_daily
+        WHERE ticker = %s
+          AND date >= CURRENT_DATE - INTERVAL '52 weeks'
+        """,
+        (ticker,),
+    )
+    range_row = cur.fetchone()
+    if range_row:
+        week_high = _to_float(range_row[0])
+        week_low = _to_float(range_row[1])
+        if week_high is not None:
+            data["week_52_high"] = week_high
+        if week_low is not None:
+            data["week_52_low"] = week_low
+
+    shares = _to_float(data.get("shares_outstanding"))
+    if shares is None:
+        shares = _latest_non_null_metric(cur, ticker, "shares_outstanding")
+        if shares is not None:
+            data["shares_outstanding"] = shares
+
+    eps = _to_float(data.get("eps_diluted"))
+    if eps is None:
+        eps = _latest_non_null_metric(cur, ticker, "eps_diluted")
+        if eps is not None:
+            data["eps_diluted"] = eps
+
+    if latest_price is not None and shares is not None and shares > 0:
+        data["market_cap"] = latest_price * shares
+
+    if latest_price is not None and eps is not None and eps != 0:
+        data["pe_ratio"] = latest_price / eps
+
+    return data
 
 
 @router.get("/{ticker}/metrics")
@@ -69,9 +155,10 @@ def get_metrics(ticker: str) -> dict[str, Any]:
             (t,),
         )
         row = cur.fetchone()
-    if not row:
-        return {"ticker": t, "data": {}}
-    data = _metrics_dict(row, cols)
+        if not row:
+            return {"ticker": t, "data": {}}
+        data = _metrics_dict(row, cols)
+        data = _enrich_metrics_with_price_data(cur, t, data)
     return MetricsRow(ticker=t, data=data).model_dump()
 
 
