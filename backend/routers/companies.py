@@ -50,6 +50,23 @@ def _metrics_dict(row: tuple, colnames: list[str]) -> dict[str, Any]:
     return out
 
 
+def _latest_eps_from_earnings(cur: Any, ticker: str) -> float | None:
+    """Most recent quarterly EPS from Polygon earnings ingest."""
+    cur.execute(
+        """
+        SELECT eps_actual
+        FROM earnings
+        WHERE ticker = %s
+          AND eps_actual IS NOT NULL
+        ORDER BY period_end DESC NULLS LAST
+        LIMIT 1
+        """,
+        (ticker,),
+    )
+    row = cur.fetchone()
+    return _to_float(row[0]) if row else None
+
+
 def _latest_non_null_metric(cur: Any, ticker: str, column: str) -> float | None:
     cur.execute(
         f"""
@@ -114,16 +131,27 @@ def _enrich_metrics_with_price_data(
             data["shares_outstanding"] = shares
 
     eps = _to_float(data.get("eps_diluted"))
+    eps_from_earnings = False
     if eps is None:
         eps = _latest_non_null_metric(cur, ticker, "eps_diluted")
         if eps is not None:
+            data["eps_diluted"] = eps
+
+    if eps is None:
+        eps = _latest_eps_from_earnings(cur, ticker)
+        if eps is not None:
+            eps_from_earnings = True
             data["eps_diluted"] = eps
 
     if latest_price is not None and shares is not None and shares > 0:
         data["market_cap"] = latest_price * shares
 
     if latest_price is not None and eps is not None and eps != 0:
-        data["pe_ratio"] = latest_price / eps
+        if eps_from_earnings:
+            # Polygon earnings EPS is quarterly — annualize for P/E
+            data["pe_ratio"] = latest_price / (eps * 4)
+        else:
+            data["pe_ratio"] = latest_price / eps
 
     return data
 
