@@ -15,6 +15,11 @@ const SKIP_KEYS = new Set([
   "fiscal_year",
   "form",
   "ticker",
+  // Shown in Explore key metrics row (API-computed or top strip)
+  "pe_ratio",
+  "market_cap",
+  "week_52_high",
+  "week_52_low",
 ]);
 
 const CATEGORY_ORDER: MetricCategory[] = [

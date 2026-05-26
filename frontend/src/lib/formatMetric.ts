@@ -30,7 +30,6 @@ export function formatValue(value: number | null | undefined, unit: string): str
   if (unit === "x") {
     const abs = Math.abs(value);
     if (abs >= 10) return value.toFixed(1) + "x";
-    if (abs >= 1) return value.toFixed(2) + "x";
     return value.toFixed(2) + "x";
   }
 
