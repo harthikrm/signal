@@ -4,7 +4,9 @@ export function formatValue(value: number | null | undefined, unit: string): str
   }
 
   if (unit === "%") {
-    return value.toFixed(1) + "%";
+    const abs = Math.abs(value);
+    if (abs >= 10) return value.toFixed(1) + "%";
+    return value.toFixed(2) + "%";
   }
 
   if (unit === "$") {
@@ -26,7 +28,10 @@ export function formatValue(value: number | null | undefined, unit: string): str
   }
 
   if (unit === "x") {
-    return value.toFixed(1) + "x";
+    const abs = Math.abs(value);
+    if (abs >= 10) return value.toFixed(1) + "x";
+    if (abs >= 1) return value.toFixed(2) + "x";
+    return value.toFixed(2) + "x";
   }
 
   const abs = Math.abs(value);

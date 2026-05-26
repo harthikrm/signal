@@ -287,7 +287,7 @@ export const METRICS: MetricDefinition[] = [
     "label": "Prior period revenue",
     "category": "Growth",
     "unit": "$",
-    "description": "Revenue from the immediately prior comparable period."
+    "description": "Revenue from the same period one year ago (YoY comparison)."
   },
   {
     "key": "period_end",
@@ -302,13 +302,6 @@ export const METRICS: MetricDefinition[] = [
     "category": "Growth",
     "unit": "",
     "description": "Company fiscal year label."
-  },
-  {
-    "key": "pe_ratio",
-    "label": "P/E ratio",
-    "category": "Valuation",
-    "unit": "x",
-    "description": "Price divided by earnings per share."
   },
   {
     "key": "ev_to_ebitda",
@@ -353,32 +346,11 @@ export const METRICS: MetricDefinition[] = [
     "description": "Sensitivity of returns to the broad market."
   },
   {
-    "key": "market_cap",
-    "label": "Market cap",
-    "category": "Valuation",
-    "unit": "$",
-    "description": "Shares outstanding times price."
-  },
-  {
     "key": "enterprise_value",
     "label": "Enterprise value",
     "category": "Valuation",
     "unit": "$",
     "description": "Equity plus net debt preferred EV definition."
-  },
-  {
-    "key": "week_52_high",
-    "label": "52-week high",
-    "category": "Price",
-    "unit": "$",
-    "description": "Highest trade over the last year."
-  },
-  {
-    "key": "week_52_low",
-    "label": "52-week low",
-    "category": "Price",
-    "unit": "$",
-    "description": "Lowest trade over the last year."
   },
   {
     "key": "avg_volume_30d",

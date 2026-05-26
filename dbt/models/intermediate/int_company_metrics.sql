@@ -55,12 +55,21 @@ computed AS (
 
 lagged AS (
     SELECT
-        *,
-        LAG(revenue) OVER (
-            PARTITION BY ticker, period_type
-            ORDER BY period_end
+        c.*,
+        (
+            SELECT c2.revenue
+            FROM computed c2
+            WHERE c2.ticker = c.ticker
+              AND c2.period_type = c.period_type
+              AND c2.period_end >= c.period_end - INTERVAL '14 months'
+              AND c2.period_end <= c.period_end - INTERVAL '10 months'
+            ORDER BY ABS(
+                EXTRACT(DOY FROM c2.period_end)
+                - EXTRACT(DOY FROM c.period_end)
+            )
+            LIMIT 1
         ) AS prior_revenue
-    FROM computed
+    FROM computed c
 )
 
 SELECT
