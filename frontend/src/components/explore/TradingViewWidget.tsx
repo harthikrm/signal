@@ -1,12 +1,16 @@
 import { useEffect, useRef } from "react";
 
-const CHART_HEIGHT = 680;
+const DEFAULT_CHART_HEIGHT = 480;
 
 interface Props {
   symbol: string;
+  height?: number;
 }
 
-export default function TradingViewWidget({ symbol }: Props) {
+export default function TradingViewWidget({
+  symbol,
+  height = DEFAULT_CHART_HEIGHT,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,7 +25,7 @@ export default function TradingViewWidget({ symbol }: Props) {
     script.innerHTML = JSON.stringify({
       autosize: false,
       width: "100%",
-      height: CHART_HEIGHT,
+      height,
       symbol,
       interval: "D",
       timezone: "America/Chicago",
@@ -44,13 +48,13 @@ export default function TradingViewWidget({ symbol }: Props) {
         containerRef.current.innerHTML = "";
       }
     };
-  }, [symbol]);
+  }, [symbol, height]);
 
   return (
     <div
       className="tradingview-widget-container"
       ref={containerRef}
-      style={{ height: "680px", width: "100%", minWidth: 0 }}
+      style={{ height: `${height}px`, width: "100%", minWidth: 0 }}
     />
   );
 }

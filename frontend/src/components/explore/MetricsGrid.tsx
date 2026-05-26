@@ -6,7 +6,6 @@ import {
   type MetricDefinition,
 } from "../../constants/metrics";
 import { formatMetricValue } from "../../lib/formatMetric";
-import { DataFreshness } from "../ui/DataFreshness";
 import { MetricTooltip } from "../ui/MetricTooltip";
 
 const SKIP_KEYS = new Set([
@@ -119,11 +118,6 @@ export function MetricsGrid({ data }: Props) {
         </div>
       ))}
 
-      <div style={{ padding: "12px 24px 0" }}>
-        <DataFreshness
-          date={data.period_end ? String(data.period_end) : undefined}
-        />
-      </div>
     </div>
   );
 }
