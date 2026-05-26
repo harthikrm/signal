@@ -12,6 +12,7 @@ import { ExploreStickySearch } from "./ExploreStickySearch";
 import { LeftPanel } from "./LeftPanel";
 import { MetricsGrid } from "./MetricsGrid";
 import MiniChartWidget from "./MiniChartWidget";
+import NewsWidget from "./NewsWidget";
 import SingleIndicatorWidget from "./SingleIndicatorWidget";
 import TechnicalPanel from "./TechnicalPanel";
 import { TickerSearch } from "./TickerSearch";
@@ -96,6 +97,7 @@ export function ExploreView() {
                 <SingleIndicatorWidget symbol={tradingViewSymbol} indicator="RSI" />
               </div>
               <SingleIndicatorWidget symbol={tradingViewSymbol} indicator="MACD" />
+              <NewsWidget symbol={tradingViewSymbol} />
             </div>
           )}
 
