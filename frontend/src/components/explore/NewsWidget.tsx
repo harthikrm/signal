@@ -2,9 +2,15 @@ import { useEffect, useRef } from "react";
 
 interface Props {
   symbol: string;
+  height?: number;
+  sidebar?: boolean;
 }
 
-export default function NewsWidget({ symbol }: Props) {
+export default function NewsWidget({
+  symbol,
+  height = 550,
+  sidebar = false,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,7 +27,7 @@ export default function NewsWidget({ symbol }: Props) {
       isTransparent: true,
       displayMode: "regular",
       width: "100%",
-      height: 550,
+      height,
       colorTheme: "dark",
       locale: "en",
     });
@@ -33,26 +39,31 @@ export default function NewsWidget({ symbol }: Props) {
         containerRef.current.innerHTML = "";
       }
     };
-  }, [symbol]);
+  }, [symbol, height]);
 
   return (
-    <div style={{ width: "100%", marginTop: "1px" }}>
-      <div
-        style={{
-          padding: "16px 24px 8px",
-          fontSize: "11px",
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-          color: "rgba(255,255,255,0.4)",
-          borderTop: "0.5px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        Latest News
-      </div>
+    <div
+      className={sidebar ? "explore-news-sidebar" : undefined}
+      style={{ width: "100%", ...(sidebar ? {} : { marginTop: "1px" }) }}
+    >
+      {!sidebar && (
+        <div
+          style={{
+            padding: "16px 24px 8px",
+            fontSize: "11px",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            color: "rgba(255,255,255,0.4)",
+            borderTop: "0.5px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          Latest News
+        </div>
+      )}
       <div
         className="tradingview-widget-container"
         ref={containerRef}
-        style={{ width: "100%", height: "550px" }}
+        style={{ width: "100%", height: `${height}px`, flex: sidebar ? 1 : undefined }}
       />
     </div>
   );

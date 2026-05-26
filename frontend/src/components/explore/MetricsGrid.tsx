@@ -58,19 +58,7 @@ export function MetricsGrid({ data }: Props) {
   }
 
   return (
-    <div style={{ width: "100%", paddingBottom: 32 }}>
-      <div
-        style={{
-          fontSize: 11,
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          color: "var(--text-tertiary)",
-          padding: "20px 24px 12px",
-        }}
-      >
-        Fundamental Metrics
-      </div>
-
+    <div style={{ width: "100%", paddingTop: 16, paddingBottom: 32 }}>
       {byCategory.map(({ category, metrics }) => (
         <div key={category} style={{ marginBottom: 20 }}>
           <div

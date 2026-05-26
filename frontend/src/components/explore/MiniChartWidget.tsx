@@ -2,9 +2,10 @@ import { useEffect, useRef } from "react";
 
 interface Props {
   symbol: string;
+  height?: number;
 }
 
-export default function MiniChartWidget({ symbol }: Props) {
+export default function MiniChartWidget({ symbol, height = 400 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function MiniChartWidget({ symbol }: Props) {
     script.innerHTML = JSON.stringify({
       symbol,
       width: "100%",
-      height: 400,
+      height,
       locale: "en",
       dateRange: "12M",
       colorTheme: "dark",
@@ -35,13 +36,13 @@ export default function MiniChartWidget({ symbol }: Props) {
         containerRef.current.innerHTML = "";
       }
     };
-  }, [symbol]);
+  }, [symbol, height]);
 
   return (
     <div
       className="tradingview-widget-container"
       ref={containerRef}
-      style={{ height: "400px", width: "100%", minWidth: 0 }}
+      style={{ height: `${height}px`, width: "100%", minWidth: 0 }}
     />
   );
 }

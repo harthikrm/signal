@@ -2,9 +2,10 @@ import { useEffect, useRef } from "react"
 
 interface Props {
   symbol: string
+  height?: number
 }
 
-export default function TechnicalPanel({ symbol }: Props) {
+export default function TechnicalPanel({ symbol, height = 400 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -18,7 +19,7 @@ export default function TechnicalPanel({ symbol }: Props) {
     script.innerHTML = JSON.stringify({
       interval: "1D",
       width: "100%",
-      height: 400,
+      height,
       symbol: symbol,
       showIntervalTabs: false,
       locale: "en",
@@ -33,13 +34,13 @@ export default function TechnicalPanel({ symbol }: Props) {
         containerRef.current.innerHTML = ""
       }
     }
-  }, [symbol])
+  }, [symbol, height])
 
   return (
     <div
       className="tradingview-widget-container"
       ref={containerRef}
-      style={{ height: "400px", width: "100%" }}
+      style={{ height: `${height}px`, width: "100%" }}
     />
   )
 }

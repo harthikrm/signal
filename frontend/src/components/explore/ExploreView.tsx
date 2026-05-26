@@ -18,6 +18,11 @@ import TechnicalPanel from "./TechnicalPanel";
 import { TickerSearch } from "./TickerSearch";
 import TradingViewWidget from "./TradingViewWidget";
 
+const TECH_ROW_HEIGHT = 300;
+const MACD_ROW_HEIGHT = 250;
+/** Left column: 3×300 row + 1px gaps + MACD row */
+const INTELLIGENCE_NEWS_HEIGHT = TECH_ROW_HEIGHT + 1 + MACD_ROW_HEIGHT + 1;
+
 export function ExploreView() {
   const activeTicker = useAppStore((s) => s.activeTicker);
   const setActiveTicker = useAppStore((s) => s.setActiveTicker);
@@ -90,17 +95,51 @@ export function ExploreView() {
           </div>
 
           {tradingViewSymbol && (
-            <div className="explore-below-chart">
-              <TechnicalPanel symbol={tradingViewSymbol} />
-              <div className="explore-mini-widgets">
-                <MiniChartWidget symbol={tradingViewSymbol} />
-                <SingleIndicatorWidget symbol={tradingViewSymbol} indicator="RSI" />
+            <>
+              <div className="explore-section-header">Market Intelligence</div>
+              <div className="explore-intelligence-grid">
+                <div className="explore-intelligence-left">
+                  <div className="explore-intelligence-technicals-row">
+                    <div className="explore-widget-cell">
+                      <TechnicalPanel
+                        symbol={tradingViewSymbol}
+                        height={TECH_ROW_HEIGHT}
+                      />
+                    </div>
+                    <div className="explore-widget-cell">
+                      <MiniChartWidget
+                        symbol={tradingViewSymbol}
+                        height={TECH_ROW_HEIGHT}
+                      />
+                    </div>
+                    <div className="explore-widget-cell">
+                      <SingleIndicatorWidget
+                        symbol={tradingViewSymbol}
+                        indicator="RSI"
+                        height={TECH_ROW_HEIGHT}
+                      />
+                    </div>
+                  </div>
+                  <div className="explore-widget-cell">
+                    <SingleIndicatorWidget
+                      symbol={tradingViewSymbol}
+                      indicator="MACD"
+                      height={MACD_ROW_HEIGHT}
+                    />
+                  </div>
+                </div>
+                <div className="explore-intelligence-news">
+                  <NewsWidget
+                    symbol={tradingViewSymbol}
+                    height={INTELLIGENCE_NEWS_HEIGHT}
+                    sidebar
+                  />
+                </div>
               </div>
-              <SingleIndicatorWidget symbol={tradingViewSymbol} indicator="MACD" />
-              <NewsWidget symbol={tradingViewSymbol} />
-            </div>
+            </>
           )}
 
+          <div className="explore-section-header">Fundamental Metrics</div>
           <MetricsGrid data={metricData} />
         </>
       )}
