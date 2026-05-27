@@ -18,6 +18,47 @@ import TechnicalGaugeWidget from "./TechnicalGaugeWidget";
 import { TickerSearch } from "./TickerSearch";
 import TradingViewWidget from "./TradingViewWidget";
 
+const SectionHeader = ({ title }: { title: string }) => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      padding: "32px 24px 20px",
+      borderTop: "0.5px solid rgba(255,255,255,0.08)",
+      marginTop: "8px",
+    }}
+  >
+    <div
+      style={{
+        width: "3px",
+        height: "18px",
+        background: "#60a5fa",
+        borderRadius: "2px",
+        flexShrink: 0,
+      }}
+    />
+    <span
+      style={{
+        fontSize: "15px",
+        fontWeight: 600,
+        color: "rgba(255,255,255,0.9)",
+        letterSpacing: "0.01em",
+      }}
+    >
+      {title}
+    </span>
+    <div
+      style={{
+        flex: 1,
+        height: "0.5px",
+        background: "rgba(255,255,255,0.08)",
+        marginLeft: "8px",
+      }}
+    />
+  </div>
+);
+
 export function ExploreView() {
   const activeTicker = useAppStore((s) => s.activeTicker);
   const setActiveTicker = useAppStore((s) => s.setActiveTicker);
@@ -91,19 +132,7 @@ export function ExploreView() {
 
           {tradingViewSymbol && (
             <>
-              <div
-                style={{
-                  marginTop: "32px",
-                  padding: "0 24px 16px",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  color: "rgba(255,255,255,0.6)",
-                  letterSpacing: "0.02em",
-                  borderBottom: "0.5px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                Market Intelligence
-              </div>
+              <SectionHeader title="Market Intelligence" />
 
               <div
                 style={{
@@ -211,7 +240,7 @@ export function ExploreView() {
             </>
           )}
 
-          <div className="explore-section-header">Fundamental Metrics</div>
+          <SectionHeader title="Fundamental Metrics" />
           <MetricsGrid data={metricData} />
         </>
       )}
