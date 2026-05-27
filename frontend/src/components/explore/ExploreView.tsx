@@ -11,17 +11,12 @@ import { Spinner } from "../ui/Spinner";
 import { ExploreStickySearch } from "./ExploreStickySearch";
 import { LeftPanel } from "./LeftPanel";
 import { MetricsGrid } from "./MetricsGrid";
-import MiniChartWidget from "./MiniChartWidget";
+import AdvancedChartWithStudies from "./AdvancedChartWithStudies";
+import CompanyProfileWidget from "./CompanyProfileWidget";
 import NewsWidget from "./NewsWidget";
-import SingleIndicatorWidget from "./SingleIndicatorWidget";
-import TechnicalPanel from "./TechnicalPanel";
+import TechnicalGaugeWidget from "./TechnicalGaugeWidget";
 import { TickerSearch } from "./TickerSearch";
 import TradingViewWidget from "./TradingViewWidget";
-
-const TECH_ROW_HEIGHT = 300;
-const MACD_ROW_HEIGHT = 250;
-/** Left column: 3×300 row + 1px gaps + MACD row */
-const INTELLIGENCE_NEWS_HEIGHT = TECH_ROW_HEIGHT + 1 + MACD_ROW_HEIGHT + 1;
 
 export function ExploreView() {
   const activeTicker = useAppStore((s) => s.activeTicker);
@@ -96,44 +91,116 @@ export function ExploreView() {
 
           {tradingViewSymbol && (
             <>
-              <div className="explore-section-header">Market Intelligence</div>
-              <div className="explore-intelligence-grid">
-                <div className="explore-intelligence-left">
-                  <div className="explore-intelligence-technicals-row">
-                    <div className="explore-widget-cell">
-                      <TechnicalPanel
+              <div
+                style={{
+                  marginTop: "32px",
+                  padding: "0 24px 16px",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "rgba(255,255,255,0.6)",
+                  letterSpacing: "0.02em",
+                  borderBottom: "0.5px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                Market Intelligence
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 360px",
+                  gap: "1px",
+                  background: "rgba(255,255,255,0.06)",
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1px",
+                    background: "rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr",
+                      gap: "1px",
+                      background: "rgba(255,255,255,0.06)",
+                    }}
+                  >
+                    <div style={{ background: "#000", padding: "12px 0 0" }}>
+                      <div
+                        style={{
+                          padding: "0 16px 8px",
+                          fontSize: "11px",
+                          color: "rgba(255,255,255,0.35)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Daily
+                      </div>
+                      <TechnicalGaugeWidget
                         symbol={tradingViewSymbol}
-                        height={TECH_ROW_HEIGHT}
+                        interval="1D"
+                        height={420}
                       />
                     </div>
-                    <div className="explore-widget-cell">
-                      <MiniChartWidget
+                    <div style={{ background: "#000", padding: "12px 0 0" }}>
+                      <div
+                        style={{
+                          padding: "0 16px 8px",
+                          fontSize: "11px",
+                          color: "rgba(255,255,255,0.35)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Weekly
+                      </div>
+                      <TechnicalGaugeWidget
                         symbol={tradingViewSymbol}
-                        height={TECH_ROW_HEIGHT}
+                        interval="1W"
+                        height={420}
                       />
                     </div>
-                    <div className="explore-widget-cell">
-                      <SingleIndicatorWidget
-                        symbol={tradingViewSymbol}
-                        indicator="RSI"
-                        height={TECH_ROW_HEIGHT}
-                      />
+                    <div style={{ background: "#000", padding: "12px 0 0" }}>
+                      <div
+                        style={{
+                          padding: "0 16px 8px",
+                          fontSize: "11px",
+                          color: "rgba(255,255,255,0.35)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Company Profile
+                      </div>
+                      <CompanyProfileWidget symbol={tradingViewSymbol} height={420} />
                     </div>
                   </div>
-                  <div className="explore-widget-cell">
-                    <SingleIndicatorWidget
-                      symbol={tradingViewSymbol}
-                      indicator="MACD"
-                      height={MACD_ROW_HEIGHT}
-                    />
+
+                  <div style={{ background: "#000" }}>
+                    <div
+                      style={{
+                        padding: "12px 16px 8px",
+                        fontSize: "11px",
+                        color: "rgba(255,255,255,0.35)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        borderTop: "0.5px solid rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      Price · RSI · MACD
+                    </div>
+                    <AdvancedChartWithStudies symbol={tradingViewSymbol} height={500} />
                   </div>
                 </div>
-                <div className="explore-intelligence-news">
-                  <NewsWidget
-                    symbol={tradingViewSymbol}
-                    height={INTELLIGENCE_NEWS_HEIGHT}
-                    sidebar
-                  />
+
+                <div style={{ background: "#000", minHeight: "920px" }}>
+                  <NewsWidget symbol={tradingViewSymbol} />
                 </div>
               </div>
             </>
