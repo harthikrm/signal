@@ -195,7 +195,7 @@ export function ExploreView() {
                     >
                       Price · RSI · MACD
                     </div>
-                    <AdvancedChartWithStudies symbol={tradingViewSymbol} height={500} />
+                    <AdvancedChartWithStudies symbol={tradingViewSymbol} height={700} />
                   </div>
                 </div>
 

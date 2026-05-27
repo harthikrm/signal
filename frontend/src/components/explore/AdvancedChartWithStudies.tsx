@@ -7,7 +7,7 @@ interface Props {
 
 export default function AdvancedChartWithStudies({
   symbol,
-  height = 500,
+  height = 700,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
