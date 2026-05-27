@@ -31,8 +31,8 @@ const SectionHeader = ({ title }: { title: string }) => (
   >
     <div
       style={{
-        width: "3px",
-        height: "18px",
+        width: "4px",
+        height: "22px",
         background: "#60a5fa",
         borderRadius: "2px",
         flexShrink: 0,
@@ -40,7 +40,7 @@ const SectionHeader = ({ title }: { title: string }) => (
     />
     <span
       style={{
-        fontSize: "15px",
+        fontSize: "18px",
         fontWeight: 600,
         color: "rgba(255,255,255,0.9)",
         letterSpacing: "0.01em",
@@ -120,7 +120,7 @@ export function ExploreView() {
       )}
 
       {metrics && (
-        <>
+        <div style={{ paddingLeft: "16px", paddingRight: "16px" }}>
           <div className="explore-two-col-row">
             <LeftPanel ticker={activeTicker} />
             <div className="explore-chart-col">
@@ -242,7 +242,7 @@ export function ExploreView() {
 
           <SectionHeader title="Fundamental Metrics" />
           <MetricsGrid data={metricData} />
-        </>
+        </div>
       )}
     </div>
   );
