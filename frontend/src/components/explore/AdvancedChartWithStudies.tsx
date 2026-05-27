@@ -20,7 +20,9 @@ export default function AdvancedChartWithStudies({
       "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
     script.async = true;
     script.innerHTML = JSON.stringify({
-      autosize: true,
+      autosize: false,
+      width: "100%",
+      height: height,
       symbol: symbol,
       interval: "D",
       timezone: "America/Chicago",
@@ -42,13 +44,17 @@ export default function AdvancedChartWithStudies({
         containerRef.current.innerHTML = "";
       }
     };
-  }, [symbol]);
+  }, [symbol, height]);
 
   return (
     <div
       className="tradingview-widget-container"
       ref={containerRef}
-      style={{ height: `${height}px`, width: "100%" }}
+      style={{
+        height: `${height}px`,
+        width: "100%",
+        minHeight: `${height}px`,
+      }}
     />
   );
 }
