@@ -1,12 +1,10 @@
 import { useCompare } from "../../hooks/useCompare";
-import { COMPARE_STARTERS } from "../../constants/starters";
 import { usePriceSnapshot } from "../../hooks/usePriceSnapshot";
 import { useAppStore } from "../../store/appStore";
-import { Disclaimer } from "../ui/Disclaimer";
 import { ErrorMessage } from "../ui/ErrorMessage";
 import { Spinner } from "../ui/Spinner";
-import { SuggestedQuestions } from "../knowledge/SuggestedQuestions";
 import { CompareTable } from "./CompareTable";
+import { TickerSelector } from "./TickerSelector";
 
 export function CompareView() {
   const compareTickets = useAppStore((s) => s.compareTickets);
@@ -15,76 +13,110 @@ export function CompareView() {
   const { data: snap } = usePriceSnapshot();
   const { data, isFetching, error, refetch } = useCompare(compareTickets);
 
+  const replaceCompareTickets = (next: string[]) => {
+    compareTickets.forEach((t) => removeCompareTicker(t));
+    next.forEach((t) => addCompareTicker(t));
+  };
+
+  const handleSelectAt = (index: number, ticker: string) => {
+    const next = [...compareTickets];
+    if (index < next.length) {
+      next[index] = ticker.toUpperCase();
+    } else {
+      next.push(ticker.toUpperCase());
+    }
+    replaceCompareTickets(next.slice(0, 3));
+  };
+
+  const handleClearAt = (index: number) => {
+    const next = compareTickets.filter((_, i) => i !== index);
+    replaceCompareTickets(next);
+  };
+
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        padding: "12px 16px",
-        gap: 16,
+        padding: "12px 16px 0",
+        gap: 20,
         minHeight: 0,
       }}
     >
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-        {compareTickets.map((t) => (
-          <span
-            key={t}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "6px 10px",
-              borderRadius: 8,
-              background: "var(--bg-secondary)",
-              border: "0.5px solid var(--border)",
-              fontSize: 12,
-            }}
-          >
-            {t}
-            <button
-              type="button"
-              onClick={() => removeCompareTicker(t)}
-              style={{
-                border: "none",
-                background: "transparent",
-                color: "var(--text-tertiary)",
-                cursor: "pointer",
-              }}
-            >
-              ×
-            </button>
-          </span>
-        ))}
-        <select
+      {compareTickets.length < 1 ? (
+        <div
           style={{
-            padding: "6px 10px",
-            borderRadius: 8,
-            border: "0.5px solid var(--border)",
-            background: "var(--bg-secondary)",
-            color: "var(--text-primary)",
-            fontSize: 12,
-          }}
-          value=""
-          onChange={(e) => {
-            const v = e.target.value;
-            if (v) addCompareTicker(v);
-            e.target.value = "";
+            position: "fixed",
+            top: 56,
+            bottom: 36,
+            left: 0,
+            right: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "calc(100vh - 56px - 36px - 60px)",
+            padding: "0 24px",
+            zIndex: 1,
           }}
         >
-          <option value="">Add ticker…</option>
-          {(snap ?? []).map((r) => (
-            <option key={r.ticker} value={r.ticker}>
-              {r.ticker} — {r.name}
-            </option>
-          ))}
-        </select>
+          <p
+            style={{
+              fontSize: 14,
+              color: "rgba(255,255,255,0.5)",
+              textAlign: "center",
+              maxWidth: 480,
+              margin: "0 auto 24px",
+              lineHeight: 1.6,
+            }}
+          >
+            Add at least two tickers to compare metrics side by side and press
+            Generate AI Analysis for in-depth information.
+          </p>
+          <TickerSelector
+            companies={snap ?? []}
+            selectedTickers={compareTickets}
+            onSelectAt={handleSelectAt}
+            onClearAt={handleClearAt}
+          />
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+          }}
+        >
+          <p
+            style={{
+              fontSize: 14,
+              color: "rgba(255,255,255,0.5)",
+              textAlign: "center",
+              maxWidth: 480,
+              margin: "0 auto",
+              lineHeight: 1.6,
+            }}
+          >
+            Add at least two tickers to compare metrics side by side and press
+            Generate AI Analysis for in-depth information.
+          </p>
+          <TickerSelector
+            companies={snap ?? []}
+            selectedTickers={compareTickets}
+            onSelectAt={handleSelectAt}
+            onClearAt={handleClearAt}
+          />
+        </div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "center" }}>
         <button
           type="button"
           onClick={() => refetch()}
           disabled={compareTickets.length < 2 || isFetching}
           style={{
-            marginLeft: "auto",
             padding: "8px 14px",
             borderRadius: 8,
             border: "none",
@@ -96,19 +128,9 @@ export function CompareView() {
             opacity: compareTickets.length < 2 ? 0.4 : 1,
           }}
         >
-          Generate AI analysis
+          Generate AI Analysis
         </button>
       </div>
-
-      <SuggestedQuestions
-        questions={COMPARE_STARTERS}
-        onSelect={(q) => {
-          const uni = new Set((snap ?? []).map((r) => r.ticker));
-          const parts = q.toUpperCase().split(/[^A-Z0-9.]+/).filter(Boolean);
-          const hits = parts.filter((t) => uni.has(t)).slice(0, 3);
-          hits.forEach((t) => addCompareTicker(t));
-        }}
-      />
 
       <div style={{ flex: 1, overflowY: "auto", minHeight: 0, display: "flex", flexDirection: "column", gap: 20 }}>
         {compareTickets.length >= 2 && (
@@ -166,14 +188,28 @@ export function CompareView() {
           </section>
         )}
 
-        {compareTickets.length < 2 && (
-          <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
-            Add at least two tickers to compare metrics side by side.
-          </p>
-        )}
+        <div style={{ height: 32 }} />
       </div>
 
-      <Disclaimer />
+      <p
+        style={{
+          position: "fixed",
+          bottom: 36,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          fontSize: 11,
+          color: "rgba(255,255,255,0.3)",
+          padding: "6px 24px",
+          background: "rgba(0,0,0,0.9)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          zIndex: 10,
+          margin: 0,
+        }}
+      >
+        Signal is for informational purposes only. Not financial advice.
+      </p>
     </div>
   );
 }
