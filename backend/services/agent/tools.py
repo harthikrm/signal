@@ -292,6 +292,53 @@ def get_earnings_history(ticker: str, quarters: int = 8) -> list:
 
 
 @tool
+def get_metrics_history(ticker: str, periods: int = 8) -> list[dict]:
+    """
+    Get historical financial metrics for a company across
+    multiple periods from the metrics mart.
+    Use this for trend analysis — gross margin over time,
+    revenue progression, margin expansion/compression.
+
+    Args:
+        ticker: Company ticker symbol (e.g. TSLA, NVDA)
+        periods: Number of periods to return (default 8)
+                 Includes both quarterly and annual rows.
+
+    Returns list of dicts ordered by period_end DESC with:
+        period_end, period_type, revenue, gross_profit,
+        gross_margin, operating_margin, net_margin,
+        operating_income, net_income, revenue_growth,
+        free_cash_flow, rd_expense
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute(
+            """
+            SELECT
+                period_end, period_type, revenue, gross_profit,
+                gross_margin, operating_margin, net_margin,
+                operating_income, net_income, revenue_growth,
+                free_cash_flow, rd_expense
+            FROM fct_company_metrics
+            WHERE ticker = %s
+              AND period_type = 'quarterly'
+            ORDER BY period_end DESC NULLS LAST
+            LIMIT %s
+            """,
+            (ticker.upper(), periods),
+        )
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+    finally:
+        cur.close()
+        conn.close()
+
+    return [_row_to_dict(row, columns) for row in rows]
+
+
+@tool
 def get_price_history(ticker: str, days: int = 90) -> dict:
     """
     Get recent price history and market data for a company.
@@ -373,5 +420,6 @@ TOOL_REGISTRY = {
     "get_company_metrics": get_company_metrics,
     "compare_companies": compare_companies,
     "get_earnings_history": get_earnings_history,
+    "get_metrics_history": get_metrics_history,
     "get_price_history": get_price_history,
 }

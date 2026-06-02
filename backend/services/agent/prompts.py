@@ -25,6 +25,7 @@ AVAILABLE TOOLS
 - get_company_metrics: latest fundamentals for one ticker
 - compare_companies: side-by-side metrics for multiple tickers
 - get_earnings_history: quarterly EPS and revenue actuals
+- get_metrics_history: quarterly metrics trends across periods
 - get_price_history: recent OHLCV and price stats
 """
 
@@ -42,9 +43,14 @@ MANDATORY RULES:
    → ALWAYS call compare_companies first
    → Then call search_filings for each company
 
-3. If the question asks about TRENDS over time:
-   → Call get_earnings_history for quarterly data
-   → Call search_filings for management commentary
+3. If the question asks about TRENDS, historical progression,
+   or how a metric has changed over multiple quarters:
+   → Call get_metrics_history FIRST with the ticker and
+     periods=8 to get structured quarterly data
+   → Call search_filings with ticker AND filing_type="10-Q"
+     for management commentary on the trend
+   → Do NOT use get_earnings_history for margin trends —
+     earnings table only has EPS and revenue, not margins
 
 4. If the question is purely qualitative (risks,
    strategy, outlook):

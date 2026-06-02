@@ -26,6 +26,7 @@ from services.agent.tools import (
     compare_companies,
     get_company_metrics,
     get_earnings_history,
+    get_metrics_history,
     get_price_history,
     search_filings,
 )
@@ -37,6 +38,7 @@ TOOL_NAMES = Literal[
     "get_company_metrics",
     "compare_companies",
     "get_earnings_history",
+    "get_metrics_history",
     "get_price_history",
 ]
 
@@ -279,5 +281,6 @@ __all__ = [
     "get_company_metrics",
     "compare_companies",
     "get_earnings_history",
+    "get_metrics_history",
     "get_price_history",
 ]
