@@ -81,6 +81,13 @@ MANDATORY RULES:
     metrics ["rd_expense", "revenue"], then get_earnings_history
     for any ticker where revenue is null.
 
+12. When question asks about risk factors, business risks,
+    or challenges: call search_filings with:
+    - filing_type = "10-K"
+    - query = "risk factors Item 1A business risks
+      competition regulatory supply chain"
+    This targets Item 1A sections specifically.
+
 Question: {question}
 
 Prior tool results (JSON):
