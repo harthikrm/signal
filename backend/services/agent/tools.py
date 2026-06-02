@@ -44,6 +44,9 @@ def _normalize_metric_name(name: str) -> str:
         "research_&_development": "rd_expense",
     }
     return aliases.get(key, name.strip())
+
+
+def _vector_literal(vec: list[float]) -> str:
     return "[" + ",".join(str(float(x)) for x in vec) + "]"
 
 
