@@ -4,6 +4,7 @@ import { useAppStore } from "../../store/appStore";
 
 const tabs = [
   { id: "knowledge" as const, label: "Knowledge" },
+  { id: "agent" as const, label: "Agent" },
   { id: "explore" as const, label: "Explore" },
   { id: "compare" as const, label: "Compare" },
 ];

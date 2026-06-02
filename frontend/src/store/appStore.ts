@@ -1,6 +1,12 @@
 import { create } from "zustand";
 
-export type TabId = "knowledge" | "explore" | "compare";
+export type TabId = "knowledge" | "agent" | "explore" | "compare";
+
+export interface AgentMessage {
+  role: "user" | "assistant";
+  content: string;
+  citations: string[];
+}
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -20,6 +26,9 @@ interface AppState {
   chatHistory: ChatMessage[];
   addChatMessage: (msg: ChatMessage) => void;
   clearChat: () => void;
+  agentHistory: AgentMessage[];
+  addAgentMessage: (msg: AgentMessage) => void;
+  clearAgent: () => void;
   sessionId: string;
 }
 
@@ -68,5 +77,16 @@ export const useAppStore = create<AppState>((set, get) => ({
       };
     }),
   clearChat: () => set({ chatHistory: [] }),
+  agentHistory: [],
+  addAgentMessage: (msg) =>
+    set((s) => {
+      const next = [...s.agentHistory, msg];
+      const maxMessages = 12;
+      return {
+        agentHistory:
+          next.length > maxMessages ? next.slice(next.length - maxMessages) : next,
+      };
+    }),
+  clearAgent: () => set({ agentHistory: [] }),
   sessionId: newSessionId(),
 }));

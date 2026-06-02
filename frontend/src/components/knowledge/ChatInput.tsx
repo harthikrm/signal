@@ -3,9 +3,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 interface Props {
   onSend: (question: string) => void;
   isLoading: boolean;
+  placeholder?: string;
 }
 
-export function ChatInput({ onSend, isLoading }: Props) {
+export function ChatInput({
+  onSend,
+  isLoading,
+  placeholder = "Ask anything about markets, companies, or filings...",
+}: Props) {
   const [value, setValue] = useState("");
   const ta = useRef<HTMLTextAreaElement>(null);
 
@@ -46,7 +51,7 @@ export function ChatInput({ onSend, isLoading }: Props) {
         rows={1}
         value={value}
         disabled={isLoading}
-        placeholder="Ask anything about markets, companies, or filings..."
+        placeholder={placeholder}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
