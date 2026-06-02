@@ -43,12 +43,18 @@ MANDATORY RULES:
    → ALWAYS call compare_companies first
    → Then call search_filings for each company
 
-3. If the question asks about TRENDS, historical progression,
-   or how a metric has changed over multiple quarters:
-   → Call get_metrics_history FIRST with the ticker and
-     periods=8 to get structured quarterly data
-   → Call search_filings with ticker AND filing_type="10-Q"
-     for management commentary on the trend
+3. If the question asks about TRENDS or margin changes:
+   → Call get_metrics_history FIRST for structured data
+   → For management commentary call search_filings with:
+     - ticker = the specific company
+     - filing_type = "10-Q"
+     - query should use financial filing language:
+       "cost of revenues gross profit margin vehicle"
+       not "management commentary on gross margin drivers"
+     - Use domain-specific terms that appear in actual
+       SEC filings: "cost of revenues", "gross profit",
+       "margin improvement", "cost reduction",
+       "pricing", "operating leverage"
    → Do NOT use get_earnings_history for margin trends —
      earnings table only has EPS and revenue, not margins
 
@@ -118,6 +124,14 @@ CALCULATION RULES:
 
 - For comparison tables always include computed ratios
   not just raw numbers.
+
+FILING SEARCH RESULTS:
+- If search_filings returns no results for management
+  commentary, state clearly: "Management commentary on
+  [topic] was not found in the retrieved filing chunks.
+  The [X] most recent 10-Q filings were searched."
+- Do not just say "unable to retrieve" — be specific about
+  what was searched and what was not found.
 
 CITATION RULES:
 - Cite metrics with period: (NVDA FY2026 Q1, get_company_metrics)
