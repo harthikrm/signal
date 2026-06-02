@@ -14,6 +14,12 @@ RULES
 - Prefer tables when comparing multiple companies or metrics.
 - Round dollars to millions/billions and percentages to 2 decimals.
 
+TOOL USAGE RULES:
+- For any question mentioning revenue, margin, growth, EPS, or valuation: call get_company_metrics FIRST
+- For comparisons across companies: call compare_companies FIRST
+- Filing search provides qualitative context, not numbers
+- Always combine structured metrics + filing evidence
+
 AVAILABLE TOOLS
 - search_filings: semantic search over 10-K, 10-Q, 8-K chunks
 - get_company_metrics: latest fundamentals for one ticker
@@ -23,8 +29,30 @@ AVAILABLE TOOLS
 """
 
 PLAN_PROMPT = """Given the user question, choose which tools to call and with what arguments.
-Return only the tools needed — avoid redundant calls.
-If prior tool results and verification gaps are provided, address the gaps.
+
+MANDATORY RULES:
+1. If the question asks about ANY financial metric
+   (revenue, margin, growth, EPS, market cap, FCF,
+   EBITDA, valuation, price) for a SINGLE company:
+   → ALWAYS call get_company_metrics first
+   → Then call search_filings for qualitative context
+
+2. If the question asks to COMPARE multiple companies
+   on financial metrics:
+   → ALWAYS call compare_companies first
+   → Then call search_filings for each company
+
+3. If the question asks about TRENDS over time:
+   → Call get_earnings_history for quarterly data
+   → Call search_filings for management commentary
+
+4. If the question is purely qualitative (risks,
+   strategy, outlook):
+   → Call search_filings only
+
+5. NEVER answer financial figures from filing text alone.
+   Filing text gives context. Structured metrics give numbers.
+   Always use both when numbers are requested.
 
 Question: {question}
 
@@ -33,6 +61,8 @@ Prior tool results (JSON):
 
 Verification gaps from last round:
 {gaps}
+
+Return only the tools needed — avoid redundant calls.
 """
 
 VERIFY_PROMPT = """Review whether the tool results are sufficient to answer the question well.
