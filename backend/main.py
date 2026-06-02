@@ -13,7 +13,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from models.schemas import HealthResponse
-from routers import chat, companies, compare, prices, sectors
+from routers import agent, chat, companies, compare, prices, sectors
 
 load_dotenv()
 
@@ -24,7 +24,12 @@ app = FastAPI(title="Signal API", version="1.0.0")
 async def _validation_to_400_for_chat(request: Request, exc: RequestValidationError):
     """Phase 10: Knowledge chat returns 400 for invalid body (per plan)."""
     path = request.url.path.rstrip("/")
-    if path.endswith("/chat/query") or path.endswith("/compare"):
+    if (
+        path.endswith("/chat/query")
+        or path.endswith("/compare")
+        or path.endswith("/agent/query")
+        or path.endswith("/agent/stream")
+    ):
         return JSONResponse(
             status_code=400,
             content={"detail": jsonable_encoder(exc.errors())},
@@ -77,6 +82,11 @@ app.include_router(
 )
 app.include_router(
     chat.router,
+    prefix="/api",
+    dependencies=[Depends(require_api_key)],
+)
+app.include_router(
+    agent.router,
     prefix="/api",
     dependencies=[Depends(require_api_key)],
 )

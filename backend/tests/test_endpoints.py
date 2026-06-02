@@ -62,6 +62,15 @@ def test_compare_too_many_tickers_returns_400():
     assert response.status_code == 400
 
 
+def test_agent_empty_question_returns_400():
+    response = client.post(
+        "/api/agent/query",
+        headers={"X-Signal-Key": TEST_API_KEY},
+        json={"question": ""},
+    )
+    assert response.status_code == 400
+
+
 def test_sectors_returns_list():
     response = client.get(
         "/api/sectors",
