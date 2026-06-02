@@ -54,6 +54,13 @@ MANDATORY RULES:
    Filing text gives context. Structured metrics give numbers.
    Always use both when numbers are requested.
 
+10. If compare_companies returns null revenue for any ticker,
+    immediately call get_earnings_history for that ticker
+    with quarters=4 to get revenue_actual as a fallback.
+    Use revenue_actual from earnings table for the calculation.
+    Note in the answer that revenue came from earnings reports
+    not the metrics mart.
+
 Question: {question}
 
 Prior tool results (JSON):

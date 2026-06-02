@@ -239,6 +239,9 @@ def get_earnings_history(ticker: str, quarters: int = 8) -> list:
     Get earnings history for a company including
     EPS actuals and revenue actuals by quarter.
 
+    revenue_actual can be used as revenue fallback when
+    fct_company_metrics has null revenue for a ticker.
+
     Args:
         ticker: Company ticker symbol
         quarters: Number of quarters to return (default 8)
