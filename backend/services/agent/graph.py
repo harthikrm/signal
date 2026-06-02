@@ -17,6 +17,10 @@ from services.agent.prompts import (
     VERIFY_PROMPT,
 )
 from services.agent.state import AgentState
+from services.agent.tickers import (
+    allowed_tickers,
+    filter_tool_results_by_tickers,
+)
 from services.agent.tools import (
     TOOL_REGISTRY,
     compare_companies,
@@ -65,7 +69,10 @@ def _json_dumps(obj: Any) -> str:
     return json.dumps(obj, default=str, indent=2)
 
 
-def _extract_citations(tool_results: list[dict[str, Any]]) -> list[str]:
+def _extract_citations(
+    tool_results: list[dict[str, Any]],
+    allowed: set[str] | None = None,
+) -> list[str]:
     citations: list[str] = []
     seen: set[str] = set()
     for entry in tool_results:
@@ -76,6 +83,9 @@ def _extract_citations(tool_results: list[dict[str, Any]]) -> list[str]:
             continue
         for chunk in result:
             if not isinstance(chunk, dict):
+                continue
+            ticker = str(chunk.get("ticker", "")).upper()
+            if allowed and ticker not in allowed:
                 continue
             label = chunk.get("section_label") or "filing excerpt"
             cite = (
@@ -201,10 +211,13 @@ def verify_node(state: AgentState) -> dict[str, Any]:
 
 def synthesize_node(state: AgentState) -> dict[str, Any]:
     tool_results = state.get("tool_results") or []
-    citations = _extract_citations(tool_results)
+    question = state["question"]
+    tickers = allowed_tickers(question, tool_results)
+    filtered_results = filter_tool_results_by_tickers(tool_results, tickers)
+    citations = _extract_citations(filtered_results, tickers)
     prompt = SYNTHESIZE_PROMPT.format(
-        question=state["question"],
-        tool_results=_json_dumps(tool_results),
+        question=question,
+        tool_results=_json_dumps(filtered_results),
         citations="\n".join(citations) if citations else "None",
     )
     llm = _llm()

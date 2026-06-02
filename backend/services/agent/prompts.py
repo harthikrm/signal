@@ -83,8 +83,33 @@ Decide if there is enough filing and/or metrics data. If not, list what is missi
 (e.g. need search_filings for risks, need compare_companies for peers).
 """
 
-SYNTHESIZE_PROMPT = """Write the final answer for the user using ONLY the tool results below.
-Include inline citations for filing excerpts and label metrics with period.
+SYNTHESIZE_PROMPT = """Write the final answer using ONLY
+the tool results below. Do not say data is unavailable
+if the raw numbers needed for a calculation are present.
+
+CALCULATION RULES:
+- If revenue and rd_expense are both present for a ticker:
+  calculate rd_as_pct_revenue = rd_expense / revenue * 100
+  Show this in the answer even if not explicitly in results.
+
+- If revenue is null but gross_profit and gross_margin are
+  present: derive revenue = gross_profit / (gross_margin/100)
+
+- If revenue is null for a ticker: check if revenue_actual
+  exists in earnings data for that ticker and use it.
+
+- Always compute ratios and percentages when the component
+  numbers are available. Never say "not available" when
+  the numbers needed for calculation are present in results.
+
+- For comparison tables always include computed ratios
+  not just raw numbers.
+
+CITATION RULES:
+- Cite metrics with period: (NVDA FY2026 Q1, get_company_metrics)
+- Cite filing excerpts inline: (TICKER filing_type date, section)
+- Only cite sources that are actually in the tool results below
+- Do not cite companies not mentioned in the question
 
 Question: {question}
 
