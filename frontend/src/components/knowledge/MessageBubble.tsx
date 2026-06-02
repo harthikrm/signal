@@ -5,13 +5,12 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import "katex/dist/katex.min.css";
 
+import { formatCitationPill } from "../../lib/formatCitationPill";
 import type { ChatMessage } from "../../types/chat";
 
 interface Props {
   message: ChatMessage;
 }
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 const LATEX_CMD_RE =
   /\\(?:text|frac|sum|int|sqrt|alpha|beta|gamma|delta|times|cdot|left|right|over|underline|mathbf|mathrm)/i;
@@ -63,22 +62,12 @@ export function normalizeMathDelimiters(content: string): string {
   return out;
 }
 
+/** @deprecated Use formatCitationPill from lib/formatCitationPill */
 export function formatSourcePill(source: string): string {
-  const citation = source.split(",")[0].trim();
-  const parts = citation.split(/\s+/);
-  if (parts.length < 2) {
-    return citation.slice(0, 48);
-  }
-
-  const ticker = parts[0];
-  const filingType = parts[1];
-  const maybeDate = parts[2] ?? "";
-  const year = DATE_RE.test(maybeDate) ? maybeDate.slice(0, 4) : "";
-
-  return year ? `${ticker} ${filingType} ${year}` : `${ticker} ${filingType}`;
+  return formatCitationPill(source);
 }
 
-const markdownComponents: Components = {
+export const markdownComponents: Components = {
   ul: ({ children }) => <ul className="answer-list">{children}</ul>,
   li: ({ children }) => <li>{children}</li>,
   table: ({ children }) => (
@@ -149,7 +138,7 @@ const markdownComponents: Components = {
 
 export function MessageBubble({ message }: Props) {
   const isUser = message.role === "user";
-  const pills = message.sources.map(formatSourcePill);
+  const pills = message.sources.map(formatCitationPill);
   const uniquePills = [...new Set(pills)];
 
   return (
