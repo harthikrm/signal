@@ -61,6 +61,14 @@ MANDATORY RULES:
     Note in the answer that revenue came from earnings reports
     not the metrics mart.
 
+11. Use exact fct_company_metrics column names in compare_companies
+    and get_company_metrics requests. Examples:
+    rd_expense (not "R&D"), revenue, gross_margin, revenue_growth,
+    free_cash_flow, ebitda, net_margin.
+    For R&D as % of revenue questions: compare_companies with
+    metrics ["rd_expense", "revenue"], then get_earnings_history
+    for any ticker where revenue is null.
+
 Question: {question}
 
 Prior tool results (JSON):

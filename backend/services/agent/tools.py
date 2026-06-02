@@ -35,7 +35,15 @@ def _row_to_dict(row: tuple, colnames: list[str]) -> dict[str, Any]:
     return {k: _serialize_value(v) for k, v in zip(colnames, row)}
 
 
-def _vector_literal(vec: list[float]) -> str:
+def _normalize_metric_name(name: str) -> str:
+    key = (name or "").strip().lower().replace(" ", "_")
+    aliases = {
+        "r&d": "rd_expense",
+        "rd": "rd_expense",
+        "research_and_development": "rd_expense",
+        "research_&_development": "rd_expense",
+    }
+    return aliases.get(key, name.strip())
     return "[" + ",".join(str(float(x)) for x in vec) + "]"
 
 
@@ -220,9 +228,9 @@ def compare_companies(tickers: list, metrics: list) -> dict:
                 columns = [desc[0] for desc in cur.description]
                 all_metrics = _row_to_dict(row, columns)
                 result[t] = {
-                    m: all_metrics.get(m)
+                    _normalize_metric_name(m): all_metrics.get(_normalize_metric_name(m))
                     for m in metrics
-                    if m in all_metrics
+                    if _normalize_metric_name(m) in all_metrics
                 }
             else:
                 result[t] = {"error": "No data found"}
