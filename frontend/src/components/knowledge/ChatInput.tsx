@@ -6,6 +6,10 @@ interface Props {
   placeholder?: string;
 }
 
+/** Match send button height so placeholder sits optically centered. */
+const CONTROL_H = 36;
+const LINE_H = 20;
+
 export function ChatInput({
   onSend,
   isLoading,
@@ -13,12 +17,17 @@ export function ChatInput({
 }: Props) {
   const [value, setValue] = useState("");
   const ta = useRef<HTMLTextAreaElement>(null);
+  const isEmpty = !value.trim();
 
   const resize = useCallback(() => {
     const el = ta.current;
     if (!el) return;
+    if (!el.value) {
+      el.style.height = `${CONTROL_H}px`;
+      return;
+    }
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+    el.style.height = `${Math.min(Math.max(el.scrollHeight, CONTROL_H), 120)}px`;
   }, []);
 
   useEffect(() => {
@@ -39,11 +48,12 @@ export function ChatInput({
       style={{
         display: "flex",
         gap: 10,
-        alignItems: "flex-end",
+        alignItems: "center",
         border: "0.5px solid var(--border)",
         borderRadius: 12,
         padding: "8px 10px",
         background: "var(--bg-secondary)",
+        boxSizing: "border-box",
       }}
     >
       <textarea
@@ -67,9 +77,18 @@ export function ChatInput({
           background: "transparent",
           color: "var(--text-primary)",
           fontSize: 14,
-          lineHeight: 1.45,
+          // Single-line: line-height = control height centers placeholder text.
+          // Multi-line: normal leading + grow with content.
+          lineHeight: isEmpty ? `${CONTROL_H}px` : `${LINE_H}px`,
+          height: CONTROL_H,
+          minHeight: CONTROL_H,
           maxHeight: 120,
+          padding: 0,
+          margin: 0,
+          boxSizing: "border-box",
           fontFamily: "var(--font-display)",
+          overflowY: "auto",
+          display: "block",
         }}
       />
       <button
@@ -78,12 +97,18 @@ export function ChatInput({
         disabled={disabled}
         onClick={submit}
         style={{
-          width: 36,
-          height: 36,
+          flexShrink: 0,
+          width: CONTROL_H,
+          height: CONTROL_H,
           borderRadius: 8,
           border: "none",
           cursor: disabled ? "default" : "pointer",
           fontWeight: 700,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
+          lineHeight: 1,
         }}
         aria-label="Send"
       >
