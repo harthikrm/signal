@@ -64,8 +64,10 @@ export function TickerSelector({
             style={{ width: 200, position: "relative" }}
           >
             <input
-              type="search"
+              type="text"
               placeholder="TCKR"
+              autoComplete="off"
+              spellCheck={false}
               value={isOpen ? query : selected}
               onFocus={() => {
                 setOpenSlot(index);

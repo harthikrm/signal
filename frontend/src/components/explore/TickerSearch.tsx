@@ -132,7 +132,9 @@ export function TickerSearch(props: Props) {
   return (
     <div style={wrapperStyle}>
       <input
-        type="search"
+        type="text"
+        autoComplete="off"
+        spellCheck={false}
         value={inputValue}
         onChange={(e) => {
           if (sticky && !editing) setEditing(true);
