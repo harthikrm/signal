@@ -175,11 +175,32 @@ export function MessageBubble({ message }: Props) {
         <div style={{ marginTop: 10 }}>
           <div className="source-label">Sources</div>
           <div className="source-pills">
-            {uniquePills.map((pill) => (
-              <span key={pill} className="source-pill">
-                {pill}
-              </span>
-            ))}
+            {uniquePills.map((pill) => {
+              const full =
+                message.sources.find((s) => formatCitationPill(s) === pill) ||
+                pill;
+              const tickerMatch = full.match(/\b([A-Z]{1,5}(?:\.[A-Z])?)\b/);
+              const ticker = tickerMatch?.[1];
+              const secHref = ticker
+                ? `https://www.sec.gov/edgar/search/#/category=custom&entityName=${encodeURIComponent(ticker)}`
+                : undefined;
+              return (
+                <a
+                  key={pill}
+                  className="source-pill"
+                  href={secHref || "#"}
+                  target={secHref ? "_blank" : undefined}
+                  rel={secHref ? "noopener noreferrer" : undefined}
+                  title={full}
+                  onClick={(e) => {
+                    if (!secHref) e.preventDefault();
+                  }}
+                  style={{ textDecoration: "none", cursor: "pointer" }}
+                >
+                  {pill}
+                </a>
+              );
+            })}
           </div>
         </div>
       )}

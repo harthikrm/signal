@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 
-import { useAppStore } from "../../store/appStore";
+import { useAppStore, type TabId } from "../../store/appStore";
 
-const tabs = [
-  { id: "knowledge" as const, label: "Knowledge" },
-  { id: "agent" as const, label: "Agent" },
-  { id: "explore" as const, label: "Explore" },
-  { id: "compare" as const, label: "Compare" },
+const tabs: { id: TabId; label: string }[] = [
+  { id: "knowledge", label: "Knowledge" },
+  { id: "explore", label: "Explore" },
+  { id: "compare", label: "Compare" },
+  // Agent tab hidden until /api/agent/stream is deployed to Cloud Run
 ];
 
 function SignalLogo() {
@@ -81,7 +81,7 @@ export function TopBar() {
             Signal
           </span>
         </div>
-        <nav style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <nav style={{ display: "flex", alignItems: "center", gap: 4, flex: 1 }}>
           {tabs.map((t) => {
             const active = activeTab === t.id;
             return (
@@ -121,6 +121,19 @@ export function TopBar() {
             );
           })}
         </nav>
+        <a
+          href="https://github.com/harthikrm/signal"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            fontSize: 12,
+            color: "var(--text-secondary)",
+            textDecoration: "none",
+            fontFamily: "var(--font-mono)",
+          }}
+        >
+          GitHub
+        </a>
       </div>
     </header>
   );
