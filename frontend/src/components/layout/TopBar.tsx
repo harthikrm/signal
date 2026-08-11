@@ -1,12 +1,14 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 import { useAppStore, type TabId } from "../../store/appStore";
+import { AboutModal } from "./AboutModal";
 
 const tabs: { id: TabId; label: string }[] = [
   { id: "knowledge", label: "Knowledge" },
+  { id: "agent", label: "Agent" },
   { id: "explore", label: "Explore" },
   { id: "compare", label: "Compare" },
-  // Agent tab hidden until /api/agent/stream is deployed to Cloud Run
 ];
 
 function SignalLogo() {
@@ -36,6 +38,7 @@ function SignalLogo() {
 export function TopBar() {
   const activeTab = useAppStore((s) => s.activeTab);
   const setActiveTab = useAppStore((s) => s.setActiveTab);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   return (
     <header
@@ -121,20 +124,38 @@ export function TopBar() {
             );
           })}
         </nav>
-        <a
-          href="https://github.com/harthikrm/signal"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            fontSize: 12,
-            color: "var(--text-secondary)",
-            textDecoration: "none",
-            fontFamily: "var(--font-mono)",
-          }}
-        >
-          GitHub
-        </a>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <button
+            type="button"
+            onClick={() => setAboutOpen(true)}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 12,
+              color: "var(--text-secondary)",
+              fontFamily: "var(--font-mono)",
+              padding: 0,
+            }}
+          >
+            About
+          </button>
+          <a
+            href="https://github.com/harthikrm/signal"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontSize: 12,
+              color: "var(--text-secondary)",
+              textDecoration: "none",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            GitHub
+          </a>
+        </div>
       </div>
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </header>
   );
 }

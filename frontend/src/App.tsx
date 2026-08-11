@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
+import { AgentView } from "./components/agent/AgentView";
 import { CompareView } from "./components/compare/CompareView";
 import { ExploreView } from "./components/explore/ExploreView";
 import { KnowledgeView } from "./components/knowledge/KnowledgeView";
@@ -66,9 +67,9 @@ export default function App() {
             }}
           >
             {activeTab === "knowledge" && <KnowledgeView />}
+            {activeTab === "agent" && <AgentView />}
             {activeTab === "explore" && <ExploreView />}
             {activeTab === "compare" && <CompareView />}
-            {/* Agent tab hidden until backend /api/agent/stream is live */}
           </motion.div>
         </AnimatePresence>
       </main>

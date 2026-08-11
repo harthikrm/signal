@@ -73,13 +73,9 @@ export function useAgent() {
         );
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
-        const msg = (err as Error).message || "";
-        const friendly = /404|failed \(404\)/i.test(msg)
-          ? "Agent is temporarily unavailable (API route not deployed). Use Knowledge for filing Q&A."
-          : "We could not reach Signal just now. Please try again.";
         addAgentMessage({
           role: "assistant",
-          content: friendly,
+          content: "We could not reach Signal just now. Please try again.",
           citations: [],
         });
       } finally {
